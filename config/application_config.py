@@ -1,0 +1,28 @@
+from qfluentwidgets import ConfigItem, QConfig, RangeConfigItem, RangeValidator, BoolValidator
+
+
+class ApplicationConfig(QConfig):
+
+    live2d_name: ConfigItem = ConfigItem("live2d", "name", "nn")
+    live2d_resource_dir: ConfigItem = ConfigItem("live2d", "resource_dir", "resources/v3")
+    scale: RangeConfigItem = RangeConfigItem("live2d", "scale", 1.0, RangeValidator(0, 1))
+    drawX: RangeConfigItem = RangeConfigItem("live2d", "drawX", 0.0, RangeValidator(-2.0, 2.0))
+    drawY: RangeConfigItem = RangeConfigItem("live2d", "drawY", 0.0, RangeValidator(-2.0, 2.0))
+    autoBlink: ConfigItem = ConfigItem("live2d", "autoBlink", True, BoolValidator())
+    autoBreath: ConfigItem = ConfigItem("live2d", "autoBreath", True, BoolValidator())
+
+    fps: RangeConfigItem = RangeConfigItem("scene", "fps", 60, RangeValidator(1, 120))
+    width: RangeConfigItem = RangeConfigItem("scene", "width", 400, RangeValidator(1, 10000))
+    height: RangeConfigItem = RangeConfigItem("scene", "height", 400, RangeValidator(1, 10000))
+    lastX: RangeConfigItem = RangeConfigItem("scene", "lastX", 0, RangeValidator(0, 10000))
+    lastY: RangeConfigItem = RangeConfigItem("scene", "lastY", 0, RangeValidator(0, 10000))
+    stay_on_top: ConfigItem = ConfigItem("scene", "stay_on_top", True, BoolValidator())
+    visible: ConfigItem = ConfigItem("scene", "visible", True, BoolValidator())
+    motion_interval: RangeConfigItem = RangeConfigItem("scene", "motion_interval", 10, RangeValidator(5, 86400))
+    clickPenetrate: ConfigItem = ConfigItem("scene", "clickPenetrate", False, BoolValidator())
+    eye_track: ConfigItem = ConfigItem("scene", "eye_track", True, BoolValidator())
+
+    icon: ConfigItem = ConfigItem("tray", "icon", "resources/icon.png")
+
+    asr: ConfigItem = ConfigItem("asr", "asr", False, BoolValidator())
+    tts: ConfigItem = ConfigItem("tts", "tts", False, BoolValidator())
