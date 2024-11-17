@@ -25,4 +25,6 @@ class ApplicationConfig(QConfig):
     icon: ConfigItem = ConfigItem("tray", "icon", "resources/icon.png")
 
     asr: ConfigItem = ConfigItem("asr", "asr", False, BoolValidator())
+    asr_type: ConfigItem = ConfigItem("asr", "asr_type", "baidu")
     tts: ConfigItem = ConfigItem("tts", "tts", False, BoolValidator())
+    llm_type: ConfigItem = ConfigItem("llm", "llm_type", "localLLM")

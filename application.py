@@ -3,8 +3,12 @@ import live2d.v3 as live2d
 
 from PySide6.QtWidgets import QApplication
 
+
 from config.application_config import ApplicationConfig
 from l2d.l2d_model import Live2DModel
+from utils import message_queue
+from llm.llm_interface import LLMInterface
+from ui.views.flyout_chatbox import FlyoutChatBox
 from ui.views.l2d_scene import Live2DScene
 from ui.views.systray import SysTrayIcon
 
@@ -26,7 +30,7 @@ class Application(
         pass
 
     def onChatOpen(self):
-        pass
+        self.chatBox.show()
 
     def trayDoubleClicked(self):
         self.scene.activateWindow()
@@ -48,12 +52,14 @@ class Application(
 
     app: QApplication
     config: ApplicationConfig
+    chatBox: FlyoutChatBox
+    llm: LLMInterface
 
-    def __init__(self):
+    def __init__(self, config: ApplicationConfig):
         self.app = QApplication()
-        self.config = ApplicationConfig()
+        self.config = config
         self.scene = Live2DScene()
-        # self.audio_player =
+        self.chatBox = FlyoutChatBox(self.scene)
         self.l2d_model = Live2DModel()
         self.systray = SysTrayIcon()
 
@@ -63,6 +69,7 @@ class Application(
         """
         pass
 
+
     def setup(self):
         """
         设置应用程序
@@ -71,6 +78,11 @@ class Application(
         self.l2d_model.setup(self.config, self)
         self.scene.setup(self.config, self.l2d_model)
         self.systray.setup(self.config, self)
+        # self.chatBox = FlyoutChatBox(self.config, self.scene)
+        self.chatBox.setup(self.config)
+
+        # self.chatBox.sent.connect(self.sendMessage)
+        self.chatBox.sendMessageSignal.connect(self.sendMessage)
 
     def start(self):
         """
@@ -84,16 +96,17 @@ class Application(
         """
         退出操作
         """
+        live2d.dispose()
         self.app.exit()
         sys.exit()
 
+    def sendMessage(self, text: str):
+        """
+        消息队列添加输入的消息
+        """
+        message_queue.msg_queue.put(text)
 
-if __name__ == '__main__':
-    print("application init....")
-    app = Application()
-    print("load config....")
-    app.load_config()
-    print("setup app....")
-    app.setup()
-    print("run app....")
-    app.start()
+    # def getMessage(self):
+
+
+
