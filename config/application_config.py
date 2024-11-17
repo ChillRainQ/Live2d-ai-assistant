@@ -13,7 +13,7 @@ class ApplicationConfig(QConfig):
 
     fps: RangeConfigItem = RangeConfigItem("scene", "fps", 60, RangeValidator(1, 120))
     width: RangeConfigItem = RangeConfigItem("scene", "width", 400, RangeValidator(1, 10000))
-    height: RangeConfigItem = RangeConfigItem("scene", "height", 400, RangeValidator(1, 10000))
+    height: RangeConfigItem = RangeConfigItem("scene", "height", 600, RangeValidator(1, 10000))
     lastX: RangeConfigItem = RangeConfigItem("scene", "lastX", 0, RangeValidator(0, 10000))
     lastY: RangeConfigItem = RangeConfigItem("scene", "lastY", 0, RangeValidator(0, 10000))
     stay_on_top: ConfigItem = ConfigItem("scene", "stay_on_top", True, BoolValidator())
@@ -21,10 +21,13 @@ class ApplicationConfig(QConfig):
     motion_interval: RangeConfigItem = RangeConfigItem("scene", "motion_interval", 10, RangeValidator(5, 86400))
     clickPenetrate: ConfigItem = ConfigItem("scene", "clickPenetrate", False, BoolValidator())
     eye_track: ConfigItem = ConfigItem("scene", "eye_track", True, BoolValidator())
+    lip_sync: RangeConfigItem = RangeConfigItem("scene", "lip_sync", 2.0, RangeValidator(0, 10))
 
     icon: ConfigItem = ConfigItem("tray", "icon", "resources/icon.png")
 
     asr: ConfigItem = ConfigItem("asr", "asr", False, BoolValidator())
     asr_type: ConfigItem = ConfigItem("asr", "asr_type", "baidu")
     tts: ConfigItem = ConfigItem("tts", "tts", False, BoolValidator())
+    tts_type: ConfigItem = ConfigItem("tts", "tts_type", "edgetts")
     llm_type: ConfigItem = ConfigItem("llm", "llm_type", "localLLM")
+    edge_voice: ConfigItem = ConfigItem("tts", "edge_voice", "zh-CN-XiaoxiaoNeural")

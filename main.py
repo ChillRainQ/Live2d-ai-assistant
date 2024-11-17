@@ -1,7 +1,7 @@
 import queue
 import threading
 
-from utils import message_queue
+from utils import queues
 from application import Application
 from config.application_config import ApplicationConfig
 from llm.llm_factory import LLMFactory
@@ -10,8 +10,9 @@ config = ApplicationConfig()
 def llm_setup():
     llm = LLMFactory.create(config.llm_type.value)
     while True:
-        message = message_queue.msg_queue.get()
+        message = queues.send_queue.get()
         response = llm.send_message_to_llm(message)
+        queues.getMsg_queue.put(response)
         print(response)
 
 

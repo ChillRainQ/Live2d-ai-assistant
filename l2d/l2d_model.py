@@ -2,14 +2,13 @@ import io
 import os
 from abc import ABC, abstractmethod
 
-from PySide6.QtGui import QCursor, QImage
+import live2d.v3 as live2d
+from PySide6.QtGui import QImage
+from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from live2d.v3.params import StandardParams
 
 from config.application_config import ApplicationConfig
-from l2d.LocalWavHandler import LocalWavHandler
 from ui.views.l2d_scene import Live2DScene
-import live2d.v3 as live2d
-
 from utils import file_util, audio_player
 from utils.gobal_components import wav_handler
 
@@ -21,7 +20,7 @@ class Live2DModel(Live2DScene.CallbackSet):
             pass
 
         @abstractmethod
-        def onPlaySound(self, group: str, no: int):
+        def onPlaySound(self, group: str, no: int, audio_wav: io.BytesIO = None):
             pass
 
         @abstractmethod
@@ -39,18 +38,19 @@ class Live2DModel(Live2DScene.CallbackSet):
     """
     Live2D 模型
     """
-    initizlize: bool  # 初始化标记
+    initialize: bool  # 初始化标记
     model: live2d.LAppModel | None  # l2d模型
     motionFinished: bool  # 动作完成标记
     config: ApplicationConfig  # 配置
-    model_texture: QImage | None # 材质
-    audioPlayer: audio_player.AudioPlayer | None # 声音播放器
+    model_texture: QImage | None  # 材质
+    audioPlayer: audio_player.AudioPlayer | None  # 声音播放器
 
     # callbackSet
     def __init__(self):
         super().__init__()
         self.initialize = False
         self.model = None
+        # self.fbo = QOpenGLFramebufferObject(self.size(), QOpenGLFramebufferObjectCombinedDepthStencil)
         self.motionFinished = True
         self.audioPlayer = audio_player.AudioPlayer()
 
@@ -85,8 +85,7 @@ class Live2DModel(Live2DScene.CallbackSet):
         self.model.Draw()
 
     def onRightClick(self, mouseX, mouseY):
-        self.callbacks.onChatOpen()
-
+        self.callbackSet.onChatOpen()
 
     def load_model(self):
         """
@@ -106,7 +105,7 @@ class Live2DModel(Live2DScene.CallbackSet):
 
     def setup(self, config, callbackSet: CallbackSet):
         self.config = config
-        self.callbacks = callbackSet
+        self.callbackSet = callbackSet
 
     def onMouseMove(self, x: int, y: int):
         """
@@ -114,35 +113,22 @@ class Live2DModel(Live2DScene.CallbackSet):
         """
         self.model.Drag(x, y)
 
-    def isInL2dArea(self, pos: QCursor.pos()):
-        if self.model_texture is not None:
-            pixel = self.model_texture.pixelColor(pos.x(), pos.y())
-            if pixel.alpha() > 50:
-                return True
-        return False
+    def isInL2dArea(self, x: int, y: int, scene: QOpenGLWidget):
+        return True
+        # height = scene.height()# OpenGL 的坐标原点在左下角，需转换
+        # glReadBuffer(GL_FRONT)
+        # # 从帧缓冲区读取像素颜色
+        # pixel = glReadPixels(x, height - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE)
+        # print(pixel)
+        # alpha = pixel[3]
+        # # 判断是否透明（Alpha 通道是否为 0）
+        # return alpha > 0
 
     def signalConnectSlot(self):
         self.config.autoBreath.valueChanged.connect(lambda value: self.model.SetAutoBreathEnable(value))
         self.config.autoBlink.valueChanged.connect(lambda value: self.model.SetAutoBreathEnable(value))
 
-
-    def onPlaySound(self, group, no, audio_wav: io.BytesIO | None):
-        if audio_wav:
-            # 确保音频数据是BytesIO对象
-            audio = self.audioPlayer.prepare_audio(audio_wav)
-            # threading.Thread(target=self.audio_player.play_audio(audio)).start()
-            self.audioPlayer.play_audio(audio)
-            print("语音播放完成")
-            # asyncio.run(self.audio_player.async_play_audio(audio))
-            self.wav_handler.Start(audio_wav)
-            print("口型同步已设定")
-            if self.wav_handler.Update():
-                # 设置模型口型
-                print('尝试口型同步')
-                print(f'响度：{self.wav_handler.GetRms()}')
-                self.model.SetParameterValue(StandardParams.ParamMouthOpenY,
-                                             self.wav_handler.GetRms() * 1.0, 1)
-        else:
-            print("没有音频数据可播放")
-
-
+    def startOnMotionHandler(self, group, no, audio_wav: io.BytesIO = None):
+        self.motionFinished = False
+        self.callbackSet.onPlaySound(group, no, audio_wav)
+        self.callbackSet.onPlayText(group, no)

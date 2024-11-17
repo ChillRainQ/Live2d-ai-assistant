@@ -1,15 +1,16 @@
 from abc import ABC, abstractmethod
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QCursor
+from PySide6.QtGui import QCursor, QOpenGLFunctions
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QApplication
+from OpenGL.GL import *
 
 from config.application_config import ApplicationConfig
 import live2d.v3 as live2d
 
 
-class Live2DScene(QOpenGLWidget):
+class Live2DScene(QOpenGLWidget, QOpenGLFunctions):
     class CallbackSet(ABC):
         @staticmethod
         def onInitialize():
@@ -28,7 +29,7 @@ class Live2DScene(QOpenGLWidget):
             pass
 
         @staticmethod
-        def isInL2dArea(pos: QCursor.pos()):
+        def isInL2dArea(x:int, y:int, scene: QOpenGLWidget):
             pass
 
         @staticmethod
@@ -86,17 +87,18 @@ class Live2DScene(QOpenGLWidget):
         # 设置为透明
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         # 设置穿透
+        print(f'鼠标穿透为：{self.config.clickPenetrate.value}')
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, self.config.clickPenetrate.value)
-        print(f'穿透状态为：{self.config.clickPenetrate.value}')
         # self.setClickPenetrate(self.config.clickPenetrate.value)
         self.setWindowTitle("live 2d scene")
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
+        self.show()
 
     def show(self):
         """
         展示l2d
         """
-        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
-
+        # self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
         self.setVisible(self.config.visible.value)
 
     def initializeGL(self):
@@ -153,11 +155,13 @@ class Live2DScene(QOpenGLWidget):
         """
         if self.isMoving:
             pass
-        elif event.button() == Qt.MouseButton.LeftButton:
-            print("scene left click")
+        # elif self.getAlpha(event.x(), event.y()) and event.button() == Qt.MouseButton.LeftButton:
+        elif self.callbackSet.isInL2dArea(event.x(), event.y(), self) and event.button() == Qt.MouseButton.LeftButton:
+            print("左键")
             self.callbackSet.onLeftClick(event.x(), event.y())
-        elif event.button() == Qt.MouseButton.RightButton:
-            print("scene right click")
+        # elif self.getAlpha(event.x(), event.y()) and event.button() == Qt.MouseButton.RightButton:
+        elif self.callbackSet.isInL2dArea(event.x(), event.y(), self) and event.button() == Qt.MouseButton.RightButton:
+            print("右键")
             self.callbackSet.onRightClick(event.x(), event.y())
         self.isMoving = False
 
@@ -165,8 +169,7 @@ class Live2DScene(QOpenGLWidget):
         """
         鼠标拖拽事件
         """
-        # if self.config.enable and event.buttons() & Qt.MouseButton.LeftButton:
-        if self.callbackSet.isInL2dArea(event.pos()) and (event.buttons() & Qt.MouseButton.LeftButton):
+        if self.callbackSet.isInL2dArea(event.x(), event.y(), self) and (event.buttons() & Qt.MouseButton.LeftButton):
             # 计算并移动窗口位置
             self.move(event.globalX() - self.lastX, event.globalY() - self.lastY)
             self.config.lastX.value = self.x()
@@ -203,10 +206,19 @@ class Live2DScene(QOpenGLWidget):
     def setOnTop(self, onTop: bool):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, onTop)
 
-    def setClickPenetrate(self, clickPenetrate: bool):
-        print(f'鼠标穿透状态为：{clickPenetrate}')
+    def setClickPenetrate(self):
         self.setupAttributes()
+        self.raise_()
 
     def start(self):
         self.show()
         self.setFps(self.config.fps.value)
+
+    def getAlpha(self, x:int, y:int) -> bool:
+        self.makeCurrent()
+        image = self.grabFramebuffer()
+        color = image.pixelColor(x, y)
+        self.doneCurrent()
+        print(color.alphaF())
+        return color.alphaF() > 0
+
