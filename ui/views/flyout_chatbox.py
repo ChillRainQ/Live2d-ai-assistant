@@ -69,6 +69,12 @@ class FlyoutChatBox(QWidget):
             self.sendMessageSignal.emit(self.view.lineEdit.text())
         self.view.lineEdit.clear()
 
+    def disable(self):
+        self.view.sendMessageButton.setEnabled(False)
+
+    def enable(self):
+        self.view.sendMessageButton.setEnabled(True)
+
 
 
 

@@ -4,7 +4,6 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QCursor, QOpenGLFunctions
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QApplication
-from OpenGL.GL import *
 
 from config.application_config import ApplicationConfig
 import live2d.v3 as live2d
@@ -12,32 +11,40 @@ import live2d.v3 as live2d
 
 class Live2DScene(QOpenGLWidget, QOpenGLFunctions):
     class CallbackSet(ABC):
-        @staticmethod
-        def onInitialize():
+        @abstractmethod
+        def onInitialize(self):
             pass
 
-        @staticmethod
-        def onResize(width, height):
+        @abstractmethod
+        def onResize(self, width, height):
             pass
 
-        @staticmethod
-        def onUpdate(width, height):
+        @abstractmethod
+        def onUpdate(self, width, height):
             pass
 
-        @staticmethod
-        def onMouseMove(mouseX, mouseY):
+        @abstractmethod
+        def onMouseMove(self, mouseX, mouseY):
             pass
 
-        @staticmethod
-        def isInL2dArea(x:int, y:int, scene: QOpenGLWidget):
+        @abstractmethod
+        def isInL2dArea(self, x:int, y:int, scene: QOpenGLWidget):
             pass
 
-        @staticmethod
-        def onRightClick(mouseX, mouseY):
+        @abstractmethod
+        def onRightClick(self, mouseX, mouseY):
             pass
 
-        @staticmethod
-        def onLeftClick(mouseX, mouseY):
+        @abstractmethod
+        def onLeftClick(self, mouseX, mouseY):
+            pass
+
+        @abstractmethod
+        def onIntervalReached(self):
+            pass
+
+        @abstractmethod
+        def isFinished(self):
             pass
 
     """
@@ -130,15 +137,21 @@ class Live2DScene(QOpenGLWidget, QOpenGLFunctions):
         if not self.isVisible():
             return
 
-        if self.config.eye_track:
+        if self.config.eye_track.value:
             """
             设定眼动跟踪
             """
             pos = QCursor.pos()
             self.callbackSet.onMouseMove(pos.x() - self.x(), pos.y() - self.y())
-        # 当前动作已结束，等待
-        # 等待时间耗尽，开始下一个动作
-        # 更新窗口内容
+
+        if self.callbackSet.isFinished(): #动作结束
+            """
+            发生动作
+            """
+            self.jiffies -= 1 # 减少一帧
+            if self.jiffies <= 0: # 渲染帧数耗尽， 进行下一个动作
+                self.jiffies = self.config.fps.value * self.config.motion_interval.value
+                self.callbackSet.onIntervalReached()
         self.update()
 
     def mousePressEvent(self, event):
