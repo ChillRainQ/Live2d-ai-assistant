@@ -63,7 +63,7 @@ class Live2DModel(Live2DScene.CallbackSet):
         self.initialize = True
         self.load_model()
         self.model_texture = QImage(file_util.get_live2d_texture_path(os.path.join(
-            self.config.live2d_resource_dir.value, self.config.live2d_name.value,
+            self.config.resource_dir.value, self.config.live2d_name.value,
             self.config.live2d_name.value + '.model3.json'
         )))
         # self.chatMotionSignal = Signal(str)
@@ -129,7 +129,7 @@ class Live2DModel(Live2DScene.CallbackSet):
             del self.model
         self.model = live2d.LAppModel()
         self.model.LoadModelJson(os.path.join(
-            self.config.live2d_resource_dir.value, self.config.live2d_name.value,
+            self.config.resource_dir.value, self.config.live2d_name.value,
             self.config.live2d_name.value + '.model3.json'
         ))
         self.motionFinished = True
@@ -144,9 +144,9 @@ class Live2DModel(Live2DScene.CallbackSet):
         self.config.autoBlink.valueChanged.connect(lambda value: self.model.SetAutoBreathEnable(value))
         # self.chatMotionSignal.connect(self.startChatMotion)
 
-    def setMontionFinished(self):
-        self.motionFinished = True
-        print("motion finished")
+    # def setMontionFinished(self):
+    #     self.motionFinished = True
+    #     print("motion finished")
 
     def startMontion(self, group, no, priority):
         self.model.StartMotion(group, no, priority)
@@ -163,11 +163,7 @@ class Live2DModel(Live2DScene.CallbackSet):
 
     def startChatMotion(self, group, no, audio_wav: io.BytesIO = None):
         self.startOnMotionHandler(group, no, audio_wav)
-        self.model.StartMotion(
-            group,
-            no,
-            self.startOnMotionHandler,
-            self.setMontionFinished)
+        self.setMotionFinished()
 
     def setMotionFinished(self):
         self.motionFinished = True

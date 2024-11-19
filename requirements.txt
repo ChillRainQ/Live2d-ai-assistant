@@ -5,3 +5,4 @@ pydub~=0.25.1
 PyAudio~=0.2.14
 torch~=2.5.1+cu124
 transformers~=4.46.2
+tiktoken

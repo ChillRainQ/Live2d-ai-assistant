@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from PySide6.QtGui import QAction, QCursor, QIcon
 from PySide6.QtWidgets import QSystemTrayIcon
@@ -13,32 +13,32 @@ class SysTrayIcon(QSystemTrayIcon):
     """
 
     class CallbackSet(ABC):
-        @staticmethod
-        def trayDoubleClicked():
+        @abstractmethod
+        def trayDoubleClicked(self):
             pass
 
-        @staticmethod
-        def exitApplication():
+        @abstractmethod
+        def exitApplication(self):
             pass
 
-        @staticmethod
-        def displayCharactor():
+        @abstractmethod
+        def displayCharactor(self):
             pass
 
-        @staticmethod
-        def openSettingsPage():
+        @abstractmethod
+        def openSettings(self):
             pass
 
-        @staticmethod
-        def setStayOnTop():
+        @abstractmethod
+        def setStayOnTop(self):
             pass
 
-        @staticmethod
-        def exitApplication():
+        @abstractmethod
+        def exitApplication(self):
             pass
 
-        @staticmethod
-        def clickPenetrate():
+        @abstractmethod
+        def clickPenetrate(self):
             pass
     action_ls: list
     config: ApplicationConfig
@@ -73,7 +73,7 @@ class SysTrayIcon(QSystemTrayIcon):
             self.callbackSet.displayCharactor,
             self.callbackSet.setStayOnTop,
             self.callbackSet.clickPenetrate,
-            self.callbackSet.openSettingsPage,
+            self.callbackSet.openSettings,
             self.callbackSet.exitApplication,
         ]
         values = [

@@ -10,14 +10,16 @@ from live2d.v3.params import StandardParams
 
 from config.application_config import ApplicationConfig
 from core import queues
+from core.abstract_chat_client import AbstractChatClient
+from core.llm_factory import LLMFactory
 from l2d.l2d_model import Live2DModel
-from llm.llm_factory import LLMFactory
 from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
 # from utils import queues, audio_player
 from llm.llm_interface import LLMInterface
 from ui.views.flyout_chatbox import FlyoutChatBox
 from ui.views.l2d_scene import Live2DScene
+from ui.views.settings import Settings
 from ui.views.systray import SysTrayIcon
 from utils import audio_player
 from utils.gobal_components import wav_handler
@@ -75,12 +77,16 @@ class Application(
         self.config.clickPenetrate.value = not self.config.clickPenetrate.value
         self.scene.show()
 
+    def openSettings(self):
+        self.setting.show()
+
     app: QApplication
     config: ApplicationConfig
     chatBox: FlyoutChatBox
-    llm: LLMInterface
+    llm: AbstractChatClient
     tts: TTSInterface
     audioPlayer: audio_player.AudioPlayer | None
+    setting: Settings
 
 
     def __init__(self, config: ApplicationConfig):
@@ -91,6 +97,7 @@ class Application(
         self.chatBox = FlyoutChatBox(self.scene)
         self.l2d_model = Live2DModel()
         self.systray = SysTrayIcon()
+        self.setting = Settings(self.config)
 
     def load_config(self):
         """
@@ -111,6 +118,7 @@ class Application(
         self.scene.setup(self.config, self.l2d_model)
         self.systray.setup(self.config, self)
         self.chatBox.setup(self.config)
+        self.setting.setup(self.config)
 
         self.chatBox.sendMessageSignal.connect(self.chat)
 
@@ -139,10 +147,10 @@ class Application(
         threading.Thread(target=self.chatMontion, args=(text,), daemon=True).start()
     def chatMontion(self, text):
         try:
-            response = self.llm.send_message_to_llm(text)
+            response = self.llm.chat(text)
             audio = asyncio.run(self.tts.generate_audio(response))
             # self.l2d_model.chatMotionSignal.emit(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio)
-            self.l2d_model.startOnMotionHandler(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio)
+            self.l2d_model.startChatMotion(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio)
         finally:
             # todo 解锁
             self.chatBox.enable()
@@ -156,6 +164,7 @@ class Application(
         def sendMessageToTTS(msg: str):
             pass
         threading.Thread(target=sendMessageToTTS, args=(msg,), daemon=True).start()
+
 
 
 if __name__ == '__main__':

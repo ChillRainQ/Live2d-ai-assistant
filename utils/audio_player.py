@@ -72,8 +72,7 @@ class AudioPlayer:
             stream.close()
 
         # 使用线程播放音频
-        audio_thread = threading.Thread(target=play)
-        audio_thread.start()
+        threading.Thread(target=play, daemon=True).start()
 
     async def async_play_audio(self, audio_file):
         stream = self.p.open(
