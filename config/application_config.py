@@ -3,6 +3,7 @@ from qfluentwidgets import ConfigItem, QConfig, RangeConfigItem, RangeValidator,
 
 class ApplicationConfig(QConfig):
 
+
     live2d_name: ConfigItem = ConfigItem("live2d", "name", "nn")
     resource_dir: ConfigItem = ConfigItem("live2d", "resource_dir", "resources/v3")
     scale: RangeConfigItem = RangeConfigItem("live2d", "scale", 1.0, RangeValidator(0, 1))
@@ -29,6 +30,9 @@ class ApplicationConfig(QConfig):
     asr_type: ConfigItem = ConfigItem("asr", "asr_type", "baidu")
     tts: ConfigItem = ConfigItem("tts", "tts", False, BoolValidator())
     tts_type: ConfigItem = ConfigItem("tts", "tts_type", "edgetts")
-    llm_type: ConfigItem = ConfigItem("llm", "llm_type", "qwen")
     edge_voice: ConfigItem = ConfigItem("tts", "edge_voice", "zh-CN-XiaoxiaoNeural")
-    llm_prompt: ConfigItem = ConfigItem("llm", "prompt", "你是一个AI虚拟角色，你的名字是轻羽，性别为女性。")
+
+    llm_type: ConfigItem = ConfigItem("llm", "llm_type", "qwen")
+    llm_prompts: list = []
+    llm_current_prompt_name: ConfigItem = ConfigItem("llm", "llm_current_prompt", "")
+

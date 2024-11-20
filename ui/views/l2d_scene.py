@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QCursor, QOpenGLFunctions
+from PySide6.QtGui import QCursor
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QApplication
 
@@ -9,7 +9,7 @@ from config.application_config import ApplicationConfig
 import live2d.v3 as live2d
 
 
-class Live2DScene(QOpenGLWidget, QOpenGLFunctions):
+class Live2DScene(QOpenGLWidget):
     class CallbackSet(ABC):
         @abstractmethod
         def onInitialize(self):
@@ -98,14 +98,14 @@ class Live2DScene(QOpenGLWidget, QOpenGLFunctions):
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, self.config.clickPenetrate.value)
         # self.setClickPenetrate(self.config.clickPenetrate.value)
         self.setWindowTitle("live 2d scene")
-        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
+        # self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
         self.show()
 
     def show(self):
         """
         展示l2d
         """
-        # self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
         self.setVisible(self.config.visible.value)
 
     def initializeGL(self):

@@ -4,25 +4,30 @@ import sys
 import threading
 
 import live2d.v3 as live2d
+from PySide6.QtCore import QTimer, Signal, QObject
 
 from PySide6.QtWidgets import QApplication
 from live2d.v3.params import StandardParams
 
 from config.application_config import ApplicationConfig
-from core import queues
+from core.filter import Filter
+from prompts import prompts_loader
 from core.abstract_chat_client import AbstractChatClient
-from core.llm_factory import LLMFactory
+from core.llm_factory import ChatClientFactory
 from l2d.l2d_model import Live2DModel
 from tts.tts_factory import TTSFactory
 from tts.tts_interface import TTSInterface
-# from utils import queues, audio_player
-from llm.llm_interface import LLMInterface
+# from ui.components.popText import PopupText
+from ui.components.popText import PopText
 from ui.views.flyout_chatbox import FlyoutChatBox
 from ui.views.l2d_scene import Live2DScene
 from ui.views.settings import Settings
 from ui.views.systray import SysTrayIcon
 from utils import audio_player
 from utils.gobal_components import wav_handler
+
+class Signals(QObject):
+    llm_callback_signal = Signal(str, io.BytesIO)
 
 
 class Application(
@@ -36,7 +41,7 @@ class Application(
         if audio_wav:
             # 确保音频数据是BytesIO对象
             audio = self.audioPlayer.prepare_audio(audio_wav)
-            self.audioPlayer.play_audio(audio)
+            threading.Thread(self.audioPlayer.play_audio(audio)).start()
             print("语音播放完成")
             wav_handler.Start(audio_wav)
             print("口型同步已设定")
@@ -48,7 +53,6 @@ class Application(
                                                        wav_handler.GetRms() * 1.0, 1)
         else:
             print("没有音频数据可播放")
-
 
     def onMotionSoundFinished(self):
         pass
@@ -86,8 +90,10 @@ class Application(
     llm: AbstractChatClient
     tts: TTSInterface
     audioPlayer: audio_player.AudioPlayer | None
+    signals: Signals
     setting: Settings
-
+    chat_filter: Filter
+    popText: PopText
 
     def __init__(self, config: ApplicationConfig):
         self.app = QApplication()
@@ -98,19 +104,20 @@ class Application(
         self.l2d_model = Live2DModel()
         self.systray = SysTrayIcon()
         self.setting = Settings(self.config)
+        self.signals = Signals()
 
     def load_config(self):
         """
         加载配置
         """
-        pass
+        self.config.llm_prompts = prompts_loader.get_personalities_list()
 
     def setup(self):
         """
         设置应用程序
         """
         live2d.init()
-        self.llm = LLMFactory.create(self.config.llm_type.value)
+        self.llm = ChatClientFactory.create(self.config.llm_type.value)
         self.tts = TTSFactory.create(self.config.tts_type.value, system_prompt={
             'voice': self.config.edge_voice.value
         })
@@ -119,8 +126,9 @@ class Application(
         self.systray.setup(self.config, self)
         self.chatBox.setup(self.config)
         self.setting.setup(self.config)
-
+        self.popText = PopText(self.scene)
         self.chatBox.sendMessageSignal.connect(self.chat)
+        self.signals.llm_callback_signal.connect(self.chatCallback)
 
     def start(self):
         """
@@ -144,27 +152,35 @@ class Application(
         """
         # todo 更换播放设备， 加入锁定机制
         self.chatBox.disable()
+        self.popText.fadeOut()
+        self.popText.lock()
         threading.Thread(target=self.chatMontion, args=(text,), daemon=True).start()
+
     def chatMontion(self, text):
+        """
+        开始一个 chat 动作
+        """
         try:
             response = self.llm.chat(text)
             audio = asyncio.run(self.tts.generate_audio(response))
-            # self.l2d_model.chatMotionSignal.emit(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio)
-            self.l2d_model.startChatMotion(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio)
+            self.signals.llm_callback_signal.emit(response, audio)
         finally:
             # todo 解锁
             self.chatBox.enable()
+            self.popText.fadeOut()
+            self.popText.unlock()
 
-
-    def chatCallback(self, msg):
+    def chatCallback(self, msg, audio):
         """
-        llm 返回响应
+        llm 返回响应回调
         """
-        # todo 发送到 tts 获取语音（生成语音这个过程可能比较耗时，考虑用线程去做）
-        def sendMessageToTTS(msg: str):
-            pass
-        threading.Thread(target=sendMessageToTTS, args=(msg,), daemon=True).start()
-
+        self.l2d_model.startChatMotion(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio)
+        self.popText.fadeOut()
+        self.popText.unlock()
+        self.popText.pop(msg)
+        timer = QTimer(self.popText.currentTip)
+        timer.timeout.connect(self.popText.fadeOut)
+        timer.start(500 * len(msg))
 
 
 if __name__ == '__main__':

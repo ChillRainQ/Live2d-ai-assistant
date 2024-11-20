@@ -1,7 +1,6 @@
 
 from application import Application
 from config.application_config import ApplicationConfig
-
 config = ApplicationConfig()
 
 if __name__ == '__main__':

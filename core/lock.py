@@ -1,5 +1,6 @@
 class Lockable:
     _locked: bool
+
     def __init__(self):
         self._locked = False
 
@@ -12,11 +13,11 @@ class Lockable:
     def is_locked(self) -> bool:
         return self._locked
 
-
     @staticmethod
     def lock_decorator(func):
         def wrapper(self, *args, **kwargs):
             if self.is_locked():
                 return
             return func(self, *args, **kwargs)
+
         return wrapper

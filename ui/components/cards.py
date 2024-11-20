@@ -9,4 +9,3 @@ class Card(SettingCard):
 class SingleSettingCard(Card):
     pass
 
-# class

@@ -7,13 +7,17 @@ from typing import Iterator
 from config.application_config import ApplicationConfig
 
 
+
+
 class AbstractChatClient(ABC):
     prompt: str
     memory: []
     memory_file_name: str
     config: ApplicationConfig
+    chat_client_dir: str
+
     @abstractmethod
-    def chat(self, message):
+    def chat(self, message) -> str:
         raise NotImplementedError
 
     @abstractmethod
@@ -21,6 +25,7 @@ class AbstractChatClient(ABC):
         raise NotImplementedError
 
     def save_memory(self, filename: str):
+        print("memory serializable....")
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(self.memory, f, ensure_ascii=False)
 
@@ -37,5 +42,4 @@ class AbstractChatClient(ABC):
 
     def hook(self):
         self.save_memory(self.memory_file_name)
-
 
