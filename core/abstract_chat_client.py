@@ -27,7 +27,7 @@ class AbstractChatClient(ABC):
     def save_memory(self, filename: str):
         print("memory serializable....")
         with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(self.memory, f, ensure_ascii=False)
+            json.dump(self.memory, f, ensure_ascii=False, sort_keys=True, indent=4)
 
     def load_memory(self, filename: str):
         if not os.path.exists(filename):

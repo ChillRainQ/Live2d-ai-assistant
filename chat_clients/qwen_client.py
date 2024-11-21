@@ -3,7 +3,7 @@ import os
 import time
 from typing import Iterator
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, TextStreamer
 
 import prompts.prompts_loader
 from config.application_config import ApplicationConfig
@@ -14,8 +14,6 @@ Qwen2.5 1.5B 客户端，建议使用的方式。 模型占用大概3G左右显�
 如果安装不成功,不会操作或者硬件资源不足，亦可以使用http的方式。
 使用http_client,并在config/chat_client_config.yaml中添加配置。
 """
-
-
 class QwenClient(AbstractChatClient):
     def __init__(self, **kwargs):
         self.chat_client_dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,7 +29,7 @@ class QwenClient(AbstractChatClient):
         self.memory = self.load_memory(self.memory_file_name)
         atexit.register(self.hook)
 
-    def chat(self, message) -> str:
+    def get_model_inputs(self, message):
         self.memory.append({
             "role": "user",
             "content": message
@@ -40,9 +38,23 @@ class QwenClient(AbstractChatClient):
                        {"role": "system", "content": self.system_prompt},
                        {"role": "user", "content": message}
                    ] + self.memory
-        text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
 
+        text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
+        return model_inputs
+    def chat(self, message) -> str:
+        model_inputs = self.get_model_inputs(message)
+        # self.memory.append({
+        #     "role": "user",
+        #     "content": message
+        # })
+        # messages = [
+        #                {"role": "system", "content": self.system_prompt},
+        #                {"role": "user", "content": message}
+        #            ] + self.memory
+        # text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+
+        # model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
 
         generated_ids = self.model.generate(**model_inputs, max_new_tokens=512)
         generated_ids = [
@@ -56,11 +68,16 @@ class QwenClient(AbstractChatClient):
         self.save_memory(self.memory_file_name)
         return response
 
-    def chat_iter(self, message: str) -> Iterator[str]:
-        full_response = ""
-        for char in self.chat(message):
-            yield char
-            full_response += char
+    def chat_iter(self, message: str) -> TextStreamer:
+        model_inputs = self.get_model_inputs(message)
+        streamer = TextStreamer(self.tokenizer, skip_prompt=True, skip_special_tokens=True)
+        self.model.generate(
+            **model_inputs,
+            max_new_tokens=512,
+            streamer=streamer,
+        )
+        return streamer
+
 
 
 if __name__ == '__main__':

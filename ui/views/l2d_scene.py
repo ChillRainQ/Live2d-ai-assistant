@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 
+import numpy as np
+import PIL.Image as Image
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QCursor
+from PySide6.QtGui import QCursor, QMouseEvent
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QApplication
+import OpenGL.GL as gl
 
 from config.application_config import ApplicationConfig
 import live2d.v3 as live2d
@@ -25,10 +28,6 @@ class Live2DScene(QOpenGLWidget):
 
         @abstractmethod
         def onMouseMove(self, mouseX, mouseY):
-            pass
-
-        @abstractmethod
-        def isInL2dArea(self, x:int, y:int, scene: QOpenGLWidget):
             pass
 
         @abstractmethod
@@ -66,6 +65,7 @@ class Live2DScene(QOpenGLWidget):
         self.lastY = -1
         self.timer = -1
         self.isMoving = False
+        self.windowScale = self.devicePixelRatio()
 
     def setup(self, config: ApplicationConfig, callbackSet: CallbackSet):
         """
@@ -113,6 +113,7 @@ class Live2DScene(QOpenGLWidget):
         初始化OpenGL
         """
         self.makeCurrent()
+        gl.glClearColor(0.0, 0.0, 0.0, 0.0)
         live2d.glewInit()
         live2d.setGLProperties()
         self.callbackSet.onInitialize()
@@ -127,6 +128,7 @@ class Live2DScene(QOpenGLWidget):
         """
         重绘
         """
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
         self.callbackSet.onUpdate(self.width(), self.height())
 
     def timerEvent(self, event):
@@ -168,13 +170,9 @@ class Live2DScene(QOpenGLWidget):
         """
         if self.isMoving:
             pass
-        # elif self.getAlpha(event.x(), event.y()) and event.button() == Qt.MouseButton.LeftButton:
-        elif self.callbackSet.isInL2dArea(event.x(), event.y(), self) and event.button() == Qt.MouseButton.LeftButton:
-            print("左键")
+        elif self.isIngoreArea(event) and event.button() == Qt.MouseButton.LeftButton:
             self.callbackSet.onLeftClick(event.x(), event.y())
-        # elif self.getAlpha(event.x(), event.y()) and event.button() == Qt.MouseButton.RightButton:
-        elif self.callbackSet.isInL2dArea(event.x(), event.y(), self) and event.button() == Qt.MouseButton.RightButton:
-            print("右键")
+        elif self.isIngoreArea(event) and event.button() == Qt.MouseButton.RightButton:
             self.callbackSet.onRightClick(event.x(), event.y())
         self.isMoving = False
 
@@ -182,12 +180,21 @@ class Live2DScene(QOpenGLWidget):
         """
         鼠标拖拽事件
         """
-        if self.callbackSet.isInL2dArea(event.x(), event.y(), self) and (event.buttons() & Qt.MouseButton.LeftButton):
+        # if self.callbackSet.isInL2dArea(event.x(), event.y(), self) and (event.buttons() & Qt.MouseButton.LeftButton):
+        if self.isIngoreArea(event) and (event.buttons() & Qt.MouseButton.LeftButton):
             # 计算并移动窗口位置
             self.move(event.globalX() - self.lastX, event.globalY() - self.lastY)
             self.config.lastX.value = self.x()
             self.config.lastY.value = self.y()
             self.isMoving = True
+
+    def isIngoreArea(self, event: QMouseEvent):
+        height = self.height()
+        x, y = event.pos().x(), event.pos().y()
+        alpha = gl.glReadPixels(x * self.windowScale, (height - y) * self.windowScale, 1, 1, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)[3]
+        return alpha > 0
+
+
 
     def signalConnectSlot(self):
         """

@@ -2,6 +2,7 @@ import asyncio
 import io
 import sys
 import threading
+import wave
 
 import live2d.v3 as live2d
 from PySide6.QtCore import QTimer, Signal, QObject

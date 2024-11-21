@@ -1,8 +1,9 @@
 import io
 import os
 from abc import ABC, abstractmethod
-
 import live2d.v3 as live2d
+import numpy as np
+from OpenGL.GL import glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE, glReadBuffer, GL_FRONT, GL_BACK
 from PySide6.QtGui import QImage
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from live2d.v3.params import StandardParams
@@ -46,14 +47,6 @@ class Live2DModel(Live2DScene.CallbackSet):
     def onLeftClick(self, mouseX, mouseY):
         pass
 
-    initialize: bool  # 初始化标记
-    model: live2d.LAppModel | None  # l2d模型
-    motionFinished: bool  # 动作完成标记
-    config: ApplicationConfig  # 配置
-    model_texture: QImage | None  # 材质
-    chatMotionSignal = Signal(str)
-
-    # audioPlayer: audio_player.AudioPlayer | None  # 声音播放器
 
 
     def onInitialize(self):
@@ -99,16 +92,16 @@ class Live2DModel(Live2DScene.CallbackSet):
     def onIntervalReached(self):
         self.startRandomMotion(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value)
 
-    def isInL2dArea(self, x: int, y: int, scene: QOpenGLWidget):
-        return True
-        # height = scene.height()# OpenGL 的坐标原点在左下角，需转换
-        # glReadBuffer(GL_FRONT)
-        # # 从帧缓冲区读取像素颜色
-        # pixel = glReadPixels(x, height - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE)
-        # print(pixel)
-        # alpha = pixel[3]
-        # # 判断是否透明（Alpha 通道是否为 0）
-        # return alpha > 0
+
+
+    initialize: bool  # 初始化标记
+    model: live2d.LAppModel | None  # l2d模型
+    motionFinished: bool  # 动作完成标记
+    config: ApplicationConfig  # 配置
+    model_texture: QImage | None  # 材质
+    chatMotionSignal = Signal(str)
+
+    # audioPlayer: audio_player.AudioPlayer | None  # 声音播放器
 
     def __init__(self):
         super().__init__()
@@ -142,11 +135,6 @@ class Live2DModel(Live2DScene.CallbackSet):
     def signalConnectSlot(self):
         self.config.autoBreath.valueChanged.connect(lambda value: self.model.SetAutoBreathEnable(value))
         self.config.autoBlink.valueChanged.connect(lambda value: self.model.SetAutoBreathEnable(value))
-        # self.chatMotionSignal.connect(self.startChatMotion)
-
-    # def setMontionFinished(self):
-    #     self.motionFinished = True
-    #     print("motion finished")
 
     def startMontion(self, group, no, priority):
         self.model.StartMotion(group, no, priority)
