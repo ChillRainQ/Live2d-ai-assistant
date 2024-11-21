@@ -1,13 +1,11 @@
 from abc import ABC, abstractmethod
-
-import numpy as np
-import PIL.Image as Image
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QCursor, QMouseEvent
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QApplication
 import OpenGL.GL as gl
 
+import core.send_event_back_application_win
 from config.application_config import ApplicationConfig
 import live2d.v3 as live2d
 
@@ -96,16 +94,15 @@ class Live2DScene(QOpenGLWidget):
         # 设置穿透
         print(f'鼠标穿透为：{self.config.clickPenetrate.value}')
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, self.config.clickPenetrate.value)
-        # self.setClickPenetrate(self.config.clickPenetrate.value)
         self.setWindowTitle("live 2d scene")
-        # self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
         self.show()
 
     def show(self):
         """
         展示l2d
         """
-        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
+        # self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
         self.setVisible(self.config.visible.value)
 
     def initializeGL(self):
@@ -160,19 +157,28 @@ class Live2DScene(QOpenGLWidget):
         """
         鼠标按下事件
         """
-        self.lastX = event.x()
-        self.lastY = event.y()
-        self.isMoving = False
+        if not self.isIngoreArea(event):
+            core.send_event_back_application_win.click_back_app(event.globalX(),
+                                                                event.globalY(),
+                                                                event.button())
+        else:
+            self.lastX = event.x()
+            self.lastY = event.y()
+            self.isMoving = False
 
     def mouseReleaseEvent(self, event):
         """
         鼠标释放事件
         """
-        if self.isMoving:
+        if not self.isIngoreArea(event):
+            core.send_event_back_application_win.click_back_app(event.globalX(),
+                                                                event.globalY(),
+                                                                event.button())
+        elif self.isMoving:
             pass
-        elif self.isIngoreArea(event) and event.button() == Qt.MouseButton.LeftButton:
+        elif event.button() == Qt.MouseButton.LeftButton:
             self.callbackSet.onLeftClick(event.x(), event.y())
-        elif self.isIngoreArea(event) and event.button() == Qt.MouseButton.RightButton:
+        elif event.button() == Qt.MouseButton.RightButton:
             self.callbackSet.onRightClick(event.x(), event.y())
         self.isMoving = False
 
@@ -180,7 +186,6 @@ class Live2DScene(QOpenGLWidget):
         """
         鼠标拖拽事件
         """
-        # if self.callbackSet.isInL2dArea(event.x(), event.y(), self) and (event.buttons() & Qt.MouseButton.LeftButton):
         if self.isIngoreArea(event) and (event.buttons() & Qt.MouseButton.LeftButton):
             # 计算并移动窗口位置
             self.move(event.globalX() - self.lastX, event.globalY() - self.lastY)
@@ -234,11 +239,4 @@ class Live2DScene(QOpenGLWidget):
         self.show()
         self.setFps(self.config.fps.value)
 
-    def getAlpha(self, x:int, y:int) -> bool:
-        self.makeCurrent()
-        image = self.grabFramebuffer()
-        color = image.pixelColor(x, y)
-        self.doneCurrent()
-        print(color.alphaF())
-        return color.alphaF() > 0
 

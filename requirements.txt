@@ -6,3 +6,9 @@ PyAudio~=0.2.14
 torch~=2.5.1+cu124
 transformers~=4.46.2
 tiktoken
+pywin32~=308
+pillow~=11.0.0
+tqdm~=4.67.0
+torchaudio~=2.5.1+cu124
+safetensors~=0.4.5
+requests~=2.32.3
