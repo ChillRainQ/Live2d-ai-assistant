@@ -11,13 +11,14 @@ from PySide6.QtWidgets import QApplication
 from live2d.v3.params import StandardParams
 
 from config.application_config import ApplicationConfig
+from core.abstract_tts_client import AbstractTTSClient
 from core.filter import Filter
+from core.tts_factory import TTSClientFactory
 from prompts import prompts_loader
 from core.abstract_chat_client import AbstractChatClient
 from core.llm_factory import ChatClientFactory
 from l2d.l2d_model import Live2DModel
-from tts.tts_factory import TTSFactory
-from tts.tts_interface import TTSInterface
+
 # from ui.components.popText import PopupText
 from ui.components.popText import PopText
 from ui.views.flyout_chatbox import FlyoutChatBox
@@ -41,8 +42,7 @@ class Application(
     def onPlaySound(self, group: str, no: int, audio_wav: io.BytesIO = None):
         if audio_wav:
             # 确保音频数据是BytesIO对象
-            audio = self.audioPlayer.prepare_audio(audio_wav)
-            threading.Thread(self.audioPlayer.play_audio(audio)).start()
+            threading.Thread(target=self.audioPlayer.play_audio, args=(audio_wav,)).start()
             print("语音播放完成")
             wav_handler.Start(audio_wav)
             print("口型同步已设定")
@@ -89,7 +89,7 @@ class Application(
     config: ApplicationConfig
     chatBox: FlyoutChatBox
     llm: AbstractChatClient
-    tts: TTSInterface
+    tts: AbstractTTSClient
     audioPlayer: audio_player.AudioPlayer | None
     signals: Signals
     setting: Settings
@@ -119,7 +119,10 @@ class Application(
         """
         live2d.init()
         self.llm = ChatClientFactory.create(self.config.llm_type.value)
-        self.tts = TTSFactory.create(self.config.tts_type.value, system_prompt={
+        # self.tts = TTSFactory.create(self.config.tts_type.value, system_prompt={
+        #     'voice': self.config.edge_voice.value
+        # })
+        self.tts = TTSClientFactory.create(self.config.tts_type.value, system_prompt={
             'voice': self.config.edge_voice.value
         })
         self.l2d_model.setup(self.config, self)

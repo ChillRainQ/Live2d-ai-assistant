@@ -9,6 +9,7 @@ class ChatClientFactory:
     @staticmethod
     def create(llm_name: str) -> AbstractChatClient | None:
         llm_configs = config.yaml_config_loader.load_yaml_config(config.yaml_config_loader.CHAT_CLIENT_CONFIG)
+
         if llm_name.lower() == 'fakellm':
             llm = None
         elif llm_name.lower() == 'qwen':

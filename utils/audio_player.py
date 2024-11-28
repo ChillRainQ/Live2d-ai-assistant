@@ -1,8 +1,8 @@
-import asyncio
 import io
-import threading
 import wave
 
+import sounddevice as sd
+import numpy as np
 import pyaudio
 from pydub import AudioSegment
 from pydub.utils import make_chunks
@@ -54,25 +54,12 @@ class AudioPlayer:
             raise TypeError("输入不是音频文件路径或音频流！")
         return audio_file
 
-    def play_audio(self, audio_file):
-        # 通过线程播放音频
-        def play():
-            stream = self.p.open(
-                format=self.p.get_format_from_width(audio_file.getsampwidth()),
-                channels=audio_file.getnchannels(),
-                rate=audio_file.getframerate(),
-                output=True,
-            )
-            data = audio_file.readframes(1024)
-            while data:
-                stream.write(data)
-                data = audio_file.readframes(1024)
-
-            stream.stop_stream()
-            stream.close()
-
-        # 使用线程播放音频
-        threading.Thread(target=play, daemon=True).start()
+    def play_audio(self, audio_file: io.BytesIO):
+        audio = AudioSegment.from_file(audio_file, format='wav')
+        audio_data = np.array(audio.get_array_of_samples())
+        sample_rate = audio.frame_rate
+        sd.play(audio_data, sample_rate)
+        sd.wait()
 
     async def async_play_audio(self, audio_file):
         stream = self.p.open(

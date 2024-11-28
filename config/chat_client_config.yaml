@@ -1,5 +1,5 @@
 qwen:
-    model_name: "qwen2.5_1.5B"
+    model_name: "qwen2.5_1.5B_int4"
     personality: "zh_翻译腔"
 
 #http:

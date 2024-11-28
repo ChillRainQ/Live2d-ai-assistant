@@ -26,7 +26,7 @@ class QwenClient(AbstractChatClient):
         self.system_prompt = prompts.prompts_loader.load_personality(
             self.config.get('personality')
         )
-        self.memory = self.load_memory(self.memory_file_name)
+        self.memory = self.load_memory("")
         atexit.register(self.hook)
 
     def get_model_inputs(self, message):

@@ -20,8 +20,8 @@ class BaseDesign(QWidget):
         self.vLayout = QVBoxLayout(view)
         scrollArea.setWidget(view)
         mainLayout.addWidget(scrollArea)
-        self.vLayout.setContentsMargins(10, 10, 20, 10)
         self.setLayout(mainLayout)
+        self.vLayout.setContentsMargins(10, 10, 10, 10)
 
 
 class IconDesign:

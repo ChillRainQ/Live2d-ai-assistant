@@ -35,4 +35,5 @@ class ApplicationConfig(QConfig):
     llm_type: ConfigItem = ConfigItem("llm", "llm_type", "qwen")
     llm_prompts: list = []
     llm_current_prompt_name: ConfigItem = ConfigItem("llm", "llm_current_prompt", "")
+    audio_volume: RangeConfigItem = RangeConfigItem("audio", "audio_volume", 100, RangeValidator(0, 100))
 

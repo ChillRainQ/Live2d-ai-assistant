@@ -7,14 +7,9 @@ from qfluentwidgets import FluentWindow, FluentIcon
 
 from config.application_config import ApplicationConfig
 from ui.components.settings.application_setting import ApplicationSetting
-from ui.components.settings.live2d_setting import Live2dSetting
 
 
 class Settings(FluentWindow):
-    # live2d_setting: Live2dSetting
-    # llm_setting: LLMSetting
-    # tts_setting: TTSSetting
-    # asr_setting: ASRSetting
     application_setting: ApplicationSetting
     config: ApplicationConfig
     resource_dir: str
@@ -23,9 +18,11 @@ class Settings(FluentWindow):
         super().__init__()
         self.config = config
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool)
-        # self.live2d_setting
         self.application_setting = ApplicationSetting(self.config)
         self.addSubInterface(self.application_setting, FluentIcon.APPLICATION, "应用设置")
+        self.addSubInterface(self.application_setting, FluentIcon.APPLICATION, "应用设置2")
+        self.addSubInterface(self.application_setting, FluentIcon.APPLICATION, "应用设置3")
+        self.addSubInterface(self.application_setting, FluentIcon.APPLICATION, "应用设置4")
         self.setMinimumSize(700, 500)
 
     def setup(self, config: ApplicationConfig):
