@@ -1,15 +1,13 @@
 import io
 import os
 from abc import ABC, abstractmethod
-import live2d.v3 as live2d
-import numpy as np
-from OpenGL.GL import glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE, glReadBuffer, GL_FRONT, GL_BACK
-from PySide6.QtGui import QImage
-from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from live2d.v3.params import StandardParams
-from PySide6.QtCore import Signal
 
+from PySide6.QtCore import Signal
+from PySide6.QtGui import QImage
+
+import live2d.v3 as live2d
 from config.application_config import ApplicationConfig
+from live2d.v3.params import StandardParams
 from ui.views.l2d_scene import Live2DScene
 from utils import file_util
 from utils.gobal_components import wav_handler
@@ -46,8 +44,6 @@ class Live2DModel(Live2DScene.CallbackSet):
 
     def onLeftClick(self, mouseX, mouseY):
         pass
-
-
 
     def onInitialize(self):
         """
@@ -91,8 +87,6 @@ class Live2DModel(Live2DScene.CallbackSet):
 
     def onIntervalReached(self):
         self.startRandomMotion(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value)
-
-
 
     initialize: bool  # 初始化标记
     model: live2d.LAppModel | None  # l2d模型
@@ -149,7 +143,7 @@ class Live2DModel(Live2DScene.CallbackSet):
                                      self.startOnMotionHandler,
                                      self.setMotionFinished)
 
-    def startChatMotion(self, group, no, audio_wav: io.BytesIO = None):
+    def startChatMotion(self, group, no, msg, audio_wav: io.BytesIO = None):
         self.startOnMotionHandler(group, no, audio_wav)
         self.setMotionFinished()
 

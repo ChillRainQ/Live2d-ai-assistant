@@ -41,18 +41,24 @@ class Application(
         pass
 
     def onPlaySound(self, group: str, no: int, audio_wav: io.BytesIO = None):
+        stream = config.tts_stream.value
         if audio_wav:
             # 确保音频数据是BytesIO对象
-            threading.Thread(target=self.audioPlayer.play_audio, args=(audio_wav,)).start()
-            print("语音播放完成")
-            wav_handler.Start(audio_wav)
-            print("口型同步已设定")
-            if wav_handler.Update():
-                # 设置模型口型
-                print('尝试口型同步')
-                print(f'响度：{wav_handler.GetRms()}')
-                self.l2d_model.model.SetParameterValue(StandardParams.ParamMouthOpenY,
-                                                       wav_handler.GetRms() * 1.0, 1)
+            if not stream:
+                threading.Thread(target=self.audioPlayer.play_audio, args=(audio_wav,)).start()
+                print("语音播放完成")
+                wav_handler.Start(audio_wav)
+                print("口型同步已设定")
+                if wav_handler.Update():
+                    # 设置模型口型
+                    print('尝试口型同步')
+                    print(f'响度：{wav_handler.GetRms()}')
+                    self.l2d_model.model.SetParameterValue(StandardParams.ParamMouthOpenY,
+                                                           wav_handler.GetRms() * 1.0, 1)
+            elif stream:
+                # 流式播放
+                pass
+
         else:
             print("没有音频数据可播放")
 
@@ -150,7 +156,6 @@ class Application(
         """
         聊天任务
         """
-        # todo 更换播放设备， 加入锁定机制
         self.chatBox.disable()
         self.popText.fadeOut()
         self.popText.lock()
@@ -165,11 +170,14 @@ class Application(
             response = self.llm.chat(text)
             print(f"response time：{time.time() - now}")
             now = time.time()
-            audio = asyncio.run(self.tts.generate_audio(response))
-            print(f"audio time：{time.time() - now}")
-            self.signals.llm_callback_signal.emit(response, audio)
+            # todo 支持流式生成音频，并且可以口型同步
+            if self.config.tts_stream:
+                pass
+            else:
+                audio = asyncio.run(self.tts.generate_audio(response))
+                print(f"audio time：{time.time() - now}")
+                self.signals.llm_callback_signal.emit(response, audio)
         finally:
-            # todo 解锁
             self.chatBox.enable()
             self.popText.fadeOut()
             self.popText.unlock()

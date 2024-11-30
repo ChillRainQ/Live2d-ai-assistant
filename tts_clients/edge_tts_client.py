@@ -13,6 +13,7 @@ from core.abstract_tts_client import AbstractTTSClient
 class EdgeTTSClient(AbstractTTSClient):
     def __init__(self, config: dict):
         self.type = 'edge_tts'
+        self.model = None
         self.voice = config.get('voice')
 
     async def generate_audio(self, text: str) -> BytesIO:
