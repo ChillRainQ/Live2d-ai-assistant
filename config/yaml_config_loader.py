@@ -4,8 +4,10 @@ import re
 import yaml
 
 CHAT_CLIENT_CONFIG_NAME = 'chat_client_config.yaml'
+TTS_CLIENT_CONFIG_NAME = 'tts_client_config.yaml'
 CONFIG_DIR_PATH = os.path.join(os.path.dirname(__file__))
 CHAT_CLIENT_CONFIG = os.path.join(CONFIG_DIR_PATH, CHAT_CLIENT_CONFIG_NAME)
+TTS_CLIENT_CONFIG = os.path.join(CONFIG_DIR_PATH, TTS_CLIENT_CONFIG_NAME)
 def load_yaml_config(path: str) -> dict:
     """
     读取 YAML

@@ -3,7 +3,6 @@ import wave
 
 import sounddevice as sd
 import numpy as np
-import pyaudio
 from pydub import AudioSegment
 from pydub.utils import make_chunks
 
@@ -14,7 +13,7 @@ class AudioPlayer:
     """
 
     def __init__(self, chunk_len: int = 20):
-        self.p = pyaudio.PyAudio()
+        # self.p = pyaudio.PyAudio()
         self.chunk_len = chunk_len
 
     def __get_volume_from_chunks(self, audio):

@@ -2,7 +2,7 @@ import asyncio
 import io
 import sys
 import threading
-import wave
+import time
 
 import live2d.v3 as live2d
 from PySide6.QtCore import QTimer, Signal, QObject
@@ -19,7 +19,6 @@ from core.abstract_chat_client import AbstractChatClient
 from core.llm_factory import ChatClientFactory
 from l2d.l2d_model import Live2DModel
 
-# from ui.components.popText import PopupText
 from ui.components.popText import PopText
 from ui.views.flyout_chatbox import FlyoutChatBox
 from ui.views.l2d_scene import Live2DScene
@@ -119,12 +118,7 @@ class Application(
         """
         live2d.init()
         self.llm = ChatClientFactory.create(self.config.llm_type.value)
-        # self.tts = TTSFactory.create(self.config.tts_type.value, system_prompt={
-        #     'voice': self.config.edge_voice.value
-        # })
-        self.tts = TTSClientFactory.create(self.config.tts_type.value, system_prompt={
-            'voice': self.config.edge_voice.value
-        })
+        self.tts = TTSClientFactory.create(self.config.tts_type.value)
         self.l2d_model.setup(self.config, self)
         self.scene.setup(self.config, self.l2d_model)
         self.systray.setup(self.config, self)
@@ -165,8 +159,12 @@ class Application(
         开始一个 chat 动作
         """
         try:
+            now = time.time()
             response = self.llm.chat(text)
+            print(f"response time：{time.time() - now}")
+            now = time.time()
             audio = asyncio.run(self.tts.generate_audio(response))
+            print(f"audio time：{time.time() - now}")
             self.signals.llm_callback_signal.emit(response, audio)
         finally:
             # todo 解锁

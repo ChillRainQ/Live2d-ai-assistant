@@ -6,14 +6,14 @@ import io
 
 from pydub import AudioSegment
 
+from config.application_config import ApplicationConfig
 from core.abstract_tts_client import AbstractTTSClient
 
 
 class EdgeTTSClient(AbstractTTSClient):
-    def __init__(self, voice, cache_dir=None):
+    def __init__(self, config: dict):
         self.type = 'edge_tts'
-        self.voice = voice
-        self.cache_dir = cache_dir
+        self.voice = config.get('voice')
 
     async def generate_audio(self, text: str) -> BytesIO:
         communicate = edge_tts.Communicate(text, self.voice)

@@ -29,7 +29,7 @@ class ApplicationConfig(QConfig):
     asr: ConfigItem = ConfigItem("asr", "asr", False, BoolValidator())
     asr_type: ConfigItem = ConfigItem("asr", "asr_type", "baidu")
     tts: ConfigItem = ConfigItem("tts", "tts", False, BoolValidator())
-    tts_type: ConfigItem = ConfigItem("tts", "tts_type", "edgetts")
+    tts_type: ConfigItem = ConfigItem("tts", "tts_type", "cosyvoice")
     edge_voice: ConfigItem = ConfigItem("tts", "edge_voice", "zh-CN-XiaoxiaoNeural")
 
     llm_type: ConfigItem = ConfigItem("llm", "llm_type", "qwen")
