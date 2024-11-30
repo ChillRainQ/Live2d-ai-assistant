@@ -1,7 +1,7 @@
 cosyvoice:
   prompt_text: "看来还是受了点伤，咱也不问啦，走吧，送你回去，我就知道，不是我干的，一定是反物质军团的错。"
   prompt_speech: "tts_clients/cosyvoice/example.wav"
-  model: "tts_clients/cosyvoice/CosyVoice-300M"
+  model: "tts_clients/cosyvoice/CosyVoice-300M-25Hz"
 
 edgetts:
   voice: "zh-CN-XiaoxiaoNeural"

@@ -7,6 +7,7 @@ from utils.audio_player import AudioPlayer
 class AbstractTTSClient(metaclass=abc.ABCMeta):
     audio_player = AudioPlayer()
     type: str
+    model: object
 
     @abc.abstractmethod
     async def generate_audio(self, text: str):

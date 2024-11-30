@@ -1,13 +1,10 @@
-import asyncio
 import io
 import os
 
+import torch
 import torchaudio
-
-from config.application_config import ApplicationConfig
 from cosyvoice.cli.cosyvoice import CosyVoice
 from cosyvoice.utils.file_utils import load_wav
-from utils import audio_player
 
 from core.abstract_tts_client import AbstractTTSClient
 
@@ -22,9 +19,13 @@ class CosyVoiceClient(AbstractTTSClient):
         self.prompt_text = config.get('prompt_text').strip()
 
     async def generate_audio(self, text: str):
-        audio = self.model.inference_zero_shot(text, self.prompt_text, self.prompt_speech)
-        tts_speech = audio['tts_speech']
+        audios = []
+        for audio in self.model.inference_zero_shot(text, self.prompt_text, self.prompt_speech):
+            audios.append(audio['tts_speech'])
         audio_bytes = io.BytesIO()
-        torchaudio.save(audio_bytes, tts_speech, 22050, format='wav')
+        torchaudio.save(audio_bytes, torch.concat(audios, dim=1), 22050, format='wav')
         audio_bytes.seek(0)
         return audio_bytes
+
+
+

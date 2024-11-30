@@ -1,5 +1,6 @@
 import asyncio
 import io
+import os
 import sys
 import threading
 import time
@@ -26,6 +27,7 @@ from ui.views.settings import Settings
 from ui.views.systray import SysTrayIcon
 from utils import audio_player
 from utils.gobal_components import wav_handler
+APP_PATH = os.path.dirname(__name__)
 
 class Signals(QObject):
     llm_callback_signal = Signal(str, io.BytesIO)
