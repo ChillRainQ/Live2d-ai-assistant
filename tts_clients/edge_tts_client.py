@@ -1,3 +1,4 @@
+import asyncio
 from io import BytesIO
 from typing import Tuple
 
@@ -11,6 +12,8 @@ from core.abstract_tts_client import AbstractTTSClient
 
 
 class EdgeTTSClient(AbstractTTSClient):
+
+
     def __init__(self, config: dict):
         self.type = 'edge_tts'
         self.model = None
@@ -28,3 +31,6 @@ class EdgeTTSClient(AbstractTTSClient):
         audio_bytes.export(wav_stream, format="wav")
         wav_stream.seek(0)
         return wav_stream
+
+    def generate_audio_stream(self, text: str):
+        return asyncio.run(self.generate_audio(text))

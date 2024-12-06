@@ -1,10 +1,14 @@
 import io
+import time
 import wave
 
 import sounddevice as sd
 import numpy as np
 from pydub import AudioSegment
 from pydub.utils import make_chunks
+
+
+from utils.gobal_components import stop_event, lock
 
 
 class AudioPlayer:
@@ -59,6 +63,26 @@ class AudioPlayer:
         sample_rate = audio.frame_rate
         sd.play(audio_data, sample_rate)
         sd.wait()
+
+    def play_audio_stream(self):
+        global audio_data, stream
+        while not stop_event.is_set() or audio_data.size > 0:
+            with lock:
+                if audio_data.size > 0:
+                    if stream is None or not stream.active:
+                        # 如果流未初始化或已停止，重新启动流
+                        stream = sd.OutputStream(
+                            samplerate=22050,
+                            channels=1,
+                            dtype=np.float32
+                        )
+                        stream.start()
+                    # 播放缓冲区中的音频
+                    data_to_play = audio_data.copy()  # 复制数据以避免数据竞争
+                    audio_data = np.array([], dtype=np.float32)  # 清空缓冲区
+                    stream.write(data_to_play)  # 异步写入数据
+                else:
+                    time.sleep(0.01)
 
     async def async_play_audio(self, audio_file):
         stream = self.p.open(

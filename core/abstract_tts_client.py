@@ -13,5 +13,9 @@ class AbstractTTSClient(metaclass=abc.ABCMeta):
     async def generate_audio(self, text: str):
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def generate_audio_stream(self, text: str):
+        raise NotImplementedError
+
     async def play_audio(self, audio_file: io.BytesIO):
         self.audio_player.play_audio(audio_file)

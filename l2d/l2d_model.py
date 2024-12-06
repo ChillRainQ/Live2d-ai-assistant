@@ -55,7 +55,6 @@ class Live2DModel(Live2DScene.CallbackSet):
             self.config.resource_dir.value, self.config.live2d_name.value,
             self.config.live2d_name.value + '.model3.json'
         )))
-        # self.chatMotionSignal = Signal(str)
         # 初始化设置
         self.model.SetAutoBreathEnable(self.config.autoBreath.value)
         self.model.SetAutoBlinkEnable(self.config.autoBlink.value)
@@ -95,15 +94,12 @@ class Live2DModel(Live2DScene.CallbackSet):
     model_texture: QImage | None  # 材质
     chatMotionSignal = Signal(str)
 
-    # audioPlayer: audio_player.AudioPlayer | None  # 声音播放器
-
     def __init__(self):
         super().__init__()
         self.soundFinished = True
         self.initialize = False
         self.model = None
         self.motionFinished = True
-        # self.audioPlayer = audio_player.AudioPlayer()
 
     def load_model(self):
         """
@@ -143,7 +139,7 @@ class Live2DModel(Live2DScene.CallbackSet):
                                      self.startOnMotionHandler,
                                      self.setMotionFinished)
 
-    def startChatMotion(self, group, no, msg, audio_wav: io.BytesIO = None):
+    def startChatMotion(self, group, no, audio_wav: io.BytesIO = None):
         self.startOnMotionHandler(group, no, audio_wav)
         self.setMotionFinished()
 

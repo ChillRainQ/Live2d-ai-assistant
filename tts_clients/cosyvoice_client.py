@@ -1,15 +1,17 @@
 import io
 import os
 
+import numpy as np
 import torch
 import torchaudio
 from cosyvoice.cli.cosyvoice import CosyVoice
 from cosyvoice.utils.file_utils import load_wav
 
 from core.abstract_tts_client import AbstractTTSClient
+from utils.gobal_components import lock, audio_data, stop_event
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-
+dtype = np.float32
 
 class CosyVoiceClient(AbstractTTSClient):
     def __init__(self, config: dict):
@@ -26,6 +28,19 @@ class CosyVoiceClient(AbstractTTSClient):
         torchaudio.save(audio_bytes, torch.concat(audios, dim=1), 22050, format='wav')
         audio_bytes.seek(0)
         return audio_bytes
+
+    def generate_audio_stream(self, text: str):
+        global audio_data
+        print('now generate_audio_stream')
+        for i in self.model.inference_zero_shot(text, self.prompt_text, self.prompt_speech, stream=True):
+            chunk = i['tts_speech'].numpy().astype(dtype).flatten()
+            with lock:
+                if audio_data.size == 0:
+                    audio_data = chunk
+                else:
+                    audio_data = np.concatenate((audio_data, chunk))  # 否则追加数据
+        stop_event.set()
+
 
 
 

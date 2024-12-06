@@ -12,7 +12,6 @@ class LocalWavHandler(WavHandler):
     """
     自定义WavHandler，原版只能提供文件路径，在此直接使用流
     """
-
     def __init__(self):
         super(LocalWavHandler, self).__init__()
 
@@ -37,10 +36,13 @@ class LocalWavHandler(WavHandler):
                 self.pcmData = self.pcmData / np.max(np.abs(self.pcmData))
                 # 拆分通道
                 self.pcmData = self.pcmData.reshape(-1, self.numChannels).T
-
                 self.startTime = time.time()
                 self.lastOffset = 0
         except Exception as e:
             Info(f"[LipSync]Failed to load wav file due to exception: {e}")
             self.ReleasePcmData()
+
+
+    def Update(self) -> bool:
+        return super().Update()
 
