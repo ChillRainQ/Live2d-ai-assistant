@@ -1,5 +1,4 @@
 import config.yaml_config_loader
-from chat_clients.qwen_client import QwenClient
 from core.abstract_chat_client import AbstractChatClient
 
 
@@ -13,6 +12,7 @@ class ChatClientFactory:
         if llm_name.lower() == 'fakellm':
             llm = None
         elif llm_name.lower() == 'qwen':
+            from chat_clients.qwen_client import QwenClient
             llm = QwenClient(config=llm_configs.get('qwen'))
         else:
             raise ValueError(f'{llm_name} is not a valid LLM name.')
