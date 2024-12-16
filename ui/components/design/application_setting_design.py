@@ -16,6 +16,7 @@ class ApplicationSettingDesign(BaseDesign):
         self.lip_sync = RangeItemSettingCard(config.lip_sync, "", "嘴型同步比率")
 
 
+
         self.vLayout.addWidget(self.fps)
         self.vLayout.addWidget(self.canvas_width)
         self.vLayout.addWidget(self.canvas_height)

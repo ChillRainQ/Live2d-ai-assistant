@@ -7,6 +7,7 @@ from PySide6.QtGui import QImage
 
 import live2d.v3 as live2d
 from config.application_config import ApplicationConfig
+from core.audio_generator import AudioGenerator
 from live2d.v3.params import StandardParams
 from ui.views.l2d_scene import Live2DScene
 from utils import file_util
@@ -20,7 +21,7 @@ class Live2DModel(Live2DScene.CallbackSet):
             pass
 
         @abstractmethod
-        def onPlaySound(self, group, no, audio_wav: io.BytesIO = None):
+        def onPlaySound(self, group, no, audio_wav: io.BytesIO | AudioGenerator):
             pass
 
         @abstractmethod
@@ -129,7 +130,7 @@ class Live2DModel(Live2DScene.CallbackSet):
     def startMontion(self, group, no, priority):
         self.model.StartMotion(group, no, priority)
 
-    def startOnMotionHandler(self, group, no, audio_wav: io.BytesIO = None):
+    def startOnMotionHandler(self, group, no, audio_wav: io.BytesIO = None | AudioGenerator):
         self.motionFinished = False
         self.callbackSet.onPlaySound(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio_wav)
         self.callbackSet.onPlayText(group, no)
@@ -139,7 +140,7 @@ class Live2DModel(Live2DScene.CallbackSet):
                                      self.startOnMotionHandler,
                                      self.setMotionFinished)
 
-    def startChatMotion(self, group, no, audio_wav: io.BytesIO = None):
+    def startChatMotion(self, group, no, audio_wav: io.BytesIO = None | AudioGenerator):
         self.startOnMotionHandler(group, no, audio_wav)
         self.setMotionFinished()
 

@@ -1,6 +1,7 @@
 import abc
 import io
 
+from core.audio_generator import AudioGenerator
 from utils.audio_player import AudioPlayer
 
 
@@ -14,7 +15,7 @@ class AbstractTTSClient(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def generate_audio_stream(self, text: str):
+    def generate_audio_stream(self, text: str, audio_generate: AudioGenerator):
         raise NotImplementedError
 
     async def play_audio(self, audio_file: io.BytesIO):

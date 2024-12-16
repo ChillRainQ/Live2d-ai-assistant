@@ -1,13 +1,15 @@
 import io
+import threading
 import time
 import wave
+from abc import ABC, abstractmethod
 
 import sounddevice as sd
 import numpy as np
 from pydub import AudioSegment
 from pydub.utils import make_chunks
 
-
+from core.audio_generator import AudioGenerator
 from utils.gobal_components import stop_event, lock
 
 
@@ -58,31 +60,63 @@ class AudioPlayer:
         return audio_file
 
     def play_audio(self, audio_file: io.BytesIO):
+        """
+        常规音频播放
+        """
         audio = AudioSegment.from_file(audio_file, format='wav')
         audio_data = np.array(audio.get_array_of_samples())
         sample_rate = audio.frame_rate
         sd.play(audio_data, sample_rate)
         sd.wait()
 
-    def play_audio_stream(self):
-        global audio_data, stream
-        while not stop_event.is_set() or audio_data.size > 0:
-            with lock:
-                if audio_data.size > 0:
-                    if stream is None or not stream.active:
-                        # 如果流未初始化或已停止，重新启动流
-                        stream = sd.OutputStream(
-                            samplerate=22050,
-                            channels=1,
-                            dtype=np.float32
-                        )
-                        stream.start()
-                    # 播放缓冲区中的音频
-                    data_to_play = audio_data.copy()  # 复制数据以避免数据竞争
-                    audio_data = np.array([], dtype=np.float32)  # 清空缓冲区
-                    stream.write(data_to_play)  # 异步写入数据
-                else:
-                    time.sleep(0.01)
+    def play_audio_stream(self, generator: AudioGenerator, play_front: callable = None, play_end: callable = None):
+        # with sd.OutputStream(sample_rate=sample_rate,channels=1,
+        #     dtype=dtype
+        # ) as stream:
+        #     for chunk in generator:
+        #         if chunk.size > 0:
+        #             if play_front:
+        #                 play_front(chunk)
+        #                 stream.write(chunk)
+        #         else:
+        #             time.sleep(0.01)
+        #     if play_end:
+        #         play_end()
+        stream = None
+        while not (generator.stop_event.is_set() and generator.queue.empty()):
+            chunk = next(generator)
+            if play_front is not None:
+                threading.Thread(target=play_front, args=(chunk,), daemon=True).start()
+            if stream is None or not stream.active:
+                # 如果流未初始化或已停止，重新启动流
+                stream = sd.OutputStream(
+                    samplerate=22050,
+                    channels=1,
+                    dtype=np.float32
+                )
+                stream.start()
+            stream.write(chunk)
+        if play_end is not None:
+            play_end()
+
+        # global audio_data, stream
+        # while not stop_event.is_set() or audio_data.size > 0:
+        #     with lock:
+        #         if audio_data.size > 0:
+        #             if stream is None or not stream.active:
+        #                 # 如果流未初始化或已停止，重新启动流
+        #                 stream = sd.OutputStream(
+        #                     samplerate=22050,
+        #                     channels=1,
+        #                     dtype=np.float32
+        #                 )
+        #                 stream.start()
+        #             # 播放缓冲区中的音频
+        #             data_to_play = audio_data.copy()  # 复制数据以避免数据竞争
+        #             audio_data = np.array([], dtype=np.float32)  # 清空缓冲区
+        #             stream.write(data_to_play)  # 异步写入数据
+        #         else:
+        #             time.sleep(0.01)
 
     async def async_play_audio(self, audio_file):
         stream = self.p.open(

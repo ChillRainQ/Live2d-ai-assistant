@@ -161,7 +161,10 @@ import threading
 import time
 import numpy as np
 import sounddevice as sd
+
+from core.audio_generator import AudioGenerator
 from core.tts_factory import TTSClientFactory
+from utils.audio_player import AudioPlayer
 
 sample_rate = 22050  # 音频采样率
 dtype = np.float32  # 假设是 32 位 PCM 数据
@@ -171,28 +174,28 @@ stop_event = threading.Event()  # 用于控制播放线程的停止
 stream = None  # 存储流对象
 
 
-def play_audio():
-    global audio_data, stream
-    while not stop_event.is_set() or audio_data.size > 0:
-        with lock:
-            if audio_data.size > 0:
-                if stream is None or not stream.active:
-                    # 如果流未初始化或已停止，重新启动流
-                    stream = sd.OutputStream(
-                        samplerate=sample_rate,
-                        channels=1,
-                        dtype=dtype
-                    )
-                    stream.start()
-
-                # 播放缓冲区中的音频
-                data_to_play = audio_data.copy()  # 复制数据以避免数据竞争
-                audio_data = np.array([], dtype=dtype)  # 清空缓冲区
-                stream.write(data_to_play)  # 异步写入数据
-            else:
-                time.sleep(0.01)  # 等待新数据生成，避免忙等待
-
-
+# def play_audio():
+#     global audio_data, stream
+#     while not stop_event.is_set() or audio_data.size > 0:
+#         with lock:
+#             if audio_data.size > 0:
+#                 if stream is None or not stream.active:
+#                     # 如果流未初始化或已停止，重新启动流
+#                     stream = sd.OutputStream(
+#                         samplerate=sample_rate,
+#                         channels=1,
+#                         dtype=dtype
+#                     )
+#                     stream.start()
+#
+#                 # 播放缓冲区中的音频
+#                 data_to_play = audio_data.copy()  # 复制数据以避免数据竞争
+#                 audio_data = np.array([], dtype=dtype)  # 清空缓冲区
+#                 stream.write(data_to_play)  # 异步写入数据
+#             else:
+#                 time.sleep(0.01)  # 等待新数据生成，避免忙等待
+#
+#
 def generate_audio(cosyvoice, text):
     global audio_data
     for i in cosyvoice.model.inference_cross_lingual(text, cosyvoice.prompt_speech, stream=True):
@@ -203,45 +206,100 @@ def generate_audio(cosyvoice, text):
             else:
                 audio_data = np.concatenate((audio_data, chunk))  # 否则追加数据
     stop_event.set()  # 生成完成，触发停止事件
+#
+#
+# def main():
+#     cosyvoice = TTSClientFactory.create("cosyvoice")
+#
+#     # 模型预热
+#     print("开始模型预热")
+#     for i in cosyvoice.model.inference_cross_lingual(cosyvoice.prompt_text, cosyvoice.prompt_speech, stream=True):
+#         pass
+#     print("预热完成")
+#
+#     while True:
+#         text = input(">>")
+#         if text.strip() == "":
+#             continue
+#
+#         # 清空缓冲区并重置停止事件
+#         with lock:
+#             audio_data = np.array([], dtype=dtype)
+#         stop_event.clear()
+#
+#         print("start generate")
+#
+#         # 启动生成线程
+#         generate_thread = threading.Thread(target=generate_audio, args=(cosyvoice, text), daemon=True)
+#         generate_thread.start()
+#
+#         # 启动播放线程
+#         play_thread = threading.Thread(target=play_audio, daemon=True)
+#         play_thread.start()
+#
+#         # 等待生成线程完成
+#         generate_thread.join()
+#
+#         # 等待播放线程结束
+#         play_thread.join()
+#
+#         print(f'生成和播放完成')
+#
+#
+# if __name__ == '__main__':
+#     main()
+# def generate_audio_to_iterator(generator_func, text, audio_iterator):
+#     """
+#     调用生成函数，将数据逐块传递给迭代器。
+#     """
+#     for chunk in generator_func(text):
+#         audio_iterator.add_chunk(chunk)
+#     audio_iterator.mark_complete()  # 标记生成完成
+def generate_audio(cosyvoice, text, iter: AudioGenerator) -> AudioGenerator:
+    """
+    生成音频并逐步返回音频块作为迭代器。
+
+    :param cosyvoice: 用于生成音频的模型客户端。
+    :param text: 要生成的文本。
+    :yield: 返回逐步生成的音频块。
+    """
+    for i in cosyvoice.model.inference_cross_lingual(text, cosyvoice.prompt_speech, stream=True):
+        # 获取音频数据并转换为所需的数据类型
+        chunk = i['tts_speech'].numpy().astype(dtype).flatten()
+        chunk = chunk.reshape(-1, 1)
+        # 确保音频数据是二维数组，形状为 (chunk_size, 1)
+        # 将音频块直接添加到迭代器中
+        iter.add(chunk)
+    iter.stop_event.set()
 
 
 def main():
+    player = AudioPlayer()
     cosyvoice = TTSClientFactory.create("cosyvoice")
-
-    # 模型预热
-    print("开始模型预热")
-    for i in cosyvoice.model.inference_cross_lingual(cosyvoice.prompt_text, cosyvoice.prompt_speech, stream=True):
-        pass
-    print("预热完成")
-
     while True:
-        text = input(">>")
+        text = input(">> ")
         if text.strip() == "":
             continue
 
-        # 清空缓冲区并重置停止事件
-        with lock:
-            audio_data = np.array([], dtype=dtype)
-        stop_event.clear()
-
-        print("start generate")
+        # 创建音频迭代器
+        audio_iterator = AudioGenerator()
 
         # 启动生成线程
-        generate_thread = threading.Thread(target=generate_audio, args=(cosyvoice, text), daemon=True)
+        generate_thread = threading.Thread(
+            target=generate_audio,
+            args=(cosyvoice, text, audio_iterator),
+            daemon=True
+        )
         generate_thread.start()
 
-        # 启动播放线程
-        play_thread = threading.Thread(target=play_audio, daemon=True)
-        play_thread.start()
+        # 播放音频
+        player.play_audio_stream(audio_iterator)
 
         # 等待生成线程完成
         generate_thread.join()
+        print("本次播放完成！")
 
-        # 等待播放线程结束
-        play_thread.join()
-
-        print(f'生成和播放完成')
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
+
+
