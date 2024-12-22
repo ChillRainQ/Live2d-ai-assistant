@@ -7,8 +7,6 @@ import time
 import wave
 
 import numpy as np
-import torch
-import torchaudio
 
 import live2d.v3 as live2d
 from PySide6.QtCore import QTimer, Signal, QObject
@@ -18,7 +16,6 @@ from PySide6.QtWidgets import QApplication
 import utils.gobal_components
 from core.audio_generator import AudioGenerator
 from live2d.v3.params import StandardParams
-import sounddevice as sd
 
 from config.application_config import ApplicationConfig
 from core.abstract_tts_client import AbstractTTSClient
@@ -36,13 +33,12 @@ from ui.views.settings import Settings
 from ui.views.systray import SysTrayIcon
 from utils import audio_player
 from utils.gobal_components import wav_handler
-from utils.gobal_components import stop_event, lock
 
 APP_PATH = os.path.dirname(__name__)
 
 
 class Signals(QObject):
-    llm_callback_signal = Signal(str, io.BytesIO | AudioGenerator)
+    llm_callback_signal = Signal(str, io.BytesIO, AudioGenerator)
 
 
 class Application(
@@ -54,21 +50,22 @@ class Application(
 
     def onPlaySound(self, group: str, no: int, audio_wav: io.BytesIO | AudioGenerator):
         stream = self.config.tts_stream.value
-        if audio_wav is not None and not stream:
-            # 直接播放
+        if isinstance(audio_wav, io.BytesIO) and not stream:
             print('default mode')
             self._playAudioAndSync(audio_wav)
-        elif stream and utils.gobal_components.audio_data.size > 0:
-            # 流式音频播放
+        elif isinstance(audio_wav, AudioGenerator) and stream:
             print("stream mode")
             self._playAudioStreamAndSync(audio_wav)
         else:
             print("没有音频数据可播放")
 
-    def _playAudioAndSync(self, audio_wav: io.BytesIO = None):
+    def _playAudioAndSync(self, audio_wav: io.BytesIO):
         """
         常规音频播放
         """
+        print("开始播放语音default mode")
+        if audio_wav is None:
+            return
         threading.Thread(target=self.audioPlayer.play_audio, args=(audio_wav,)).start()
         print("语音播放完成")
         wav_handler.Start(audio_wav)
@@ -81,13 +78,18 @@ class Application(
                                                    wav_handler.GetRms() * 1.0, 1)
 
     def _playAudioStreamAndSync(self, audio_generate: AudioGenerator):
+        # todo 流式音频播放
         """
         流式音频播放
+        当前问题： 1.没有播放音频
+                2.瞬间完成执行（弹出了对话框）
         """
-
+        print("开始播放语音stream mode")
         def play_front(chunk: np.ndarray):
             if chunk.dtype == np.float32:
                 np_array = np.int16(chunk * 32767)
+            else:
+                raise TypeError("音频类型错误，只支持 float32")
             wav = io.BytesIO()
             with wave.open(wav, 'wb') as file:
                 file.setnchannels(1)  # 单声道
@@ -102,7 +104,7 @@ class Application(
                 print(f'响度：{wav_handler.GetRms()}')
                 self.l2d_model.model.SetParameterValue(StandardParams.ParamMouthOpenY,
                                                        wav_handler.GetRms() * 1.0, 1)
-
+        print("启动流式播放线程")
         threading.Thread(target=self.audioPlayer.play_audio_stream, args=(audio_generate, play_front, None, 22050,),
                          daemon=True).start()
 
@@ -171,6 +173,7 @@ class Application(
         live2d.init()
         self.llm = ChatClientFactory.create(self.config.llm_type.value)
         self.tts = TTSClientFactory.create(self.config.tts_type.value)
+        self.config.setup()
         self.l2d_model.setup(self.config, self)
         self.scene.setup(self.config, self.l2d_model)
         self.systray.setup(self.config, self)
@@ -217,28 +220,32 @@ class Application(
             response = self.llm.chat(text)
             print(f"response time：{time.time() - now}")
             now = time.time()
-            # todo 支持流式生成音频，并且可以口型同步
             if self.config.tts_stream.value:
                 print("generate audio by stream mode")
                 audio_generate = AudioGenerator()
                 threading.Thread(target=self.tts.generate_audio_stream, args=(response, audio_generate,),
                                  daemon=True).start()
-                self.signals.llm_callback_signal.emit(response, audio_generate)
+                self.signals.llm_callback_signal.emit(response, None, audio_generate)
             else:
                 print("generate audio by default mode")
                 audio = asyncio.run(self.tts.generate_audio(response))
                 print(f"audio time：{time.time() - now}")
-                self.signals.llm_callback_signal.emit(response, audio)
+                self.signals.llm_callback_signal.emit(response, audio, None)
         finally:
             self.chatBox.enable()
             self.popText.fadeOut()
             self.popText.unlock()
 
-    def chatCallback(self, msg: str, audio: io.BytesIO | AudioGenerator):
+    def chatCallback(self, msg: str, audio_io: io.BytesIO , audio_generator: AudioGenerator):
         """
         llm 返回响应回调
         """
         print("start a chat motion")
+        audio = None
+        if audio_io is not None:
+            audio = audio_io
+        elif audio_generator is not None:
+            audio = audio_generator
         self.l2d_model.startChatMotion(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio)
         self.popText.fadeOut()
         self.popText.unlock()

@@ -31,10 +31,13 @@ class ApplicationConfig(QConfig):
 
     tts: ConfigItem = ConfigItem("tts", "tts", False, BoolValidator())
     tts_type: ConfigItem = ConfigItem("tts", "tts_type", "cosyvoice")
-    tts_stream: ConfigItem = ConfigItem("tts", "tts_stream", False, BoolValidator())
+    tts_stream: ConfigItem = ConfigItem("tts", "tts_stream", True, BoolValidator())
 
     llm_type: ConfigItem = ConfigItem("llm", "llm_type", "qwen")
     llm_prompts: list = []
     llm_current_prompt_name: ConfigItem = ConfigItem("llm", "llm_current_prompt", "")
     audio_volume: RangeConfigItem = RangeConfigItem("audio", "audio_volume", 100, RangeValidator(0, 100))
 
+
+    def setup(self):
+        pass
