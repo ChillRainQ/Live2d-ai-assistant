@@ -10,7 +10,6 @@ from cosyvoice.cli.cosyvoice import CosyVoice
 from cosyvoice.utils.file_utils import load_wav
 
 from core.abstract_tts_client import AbstractTTSClient
-from utils.gobal_components import lock, audio_data, stop_event
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 dtype = np.float32

@@ -13,7 +13,7 @@ from PySide6.QtCore import QTimer, Signal, QObject
 
 from PySide6.QtWidgets import QApplication
 
-import utils.gobal_components
+from core.audio_device import AudioPlayer
 from core.audio_generator import AudioGenerator
 from live2d.v3.params import StandardParams
 
@@ -31,8 +31,8 @@ from ui.views.flyout_chatbox import FlyoutChatBox
 from ui.views.l2d_scene import Live2DScene
 from ui.views.settings import Settings
 from ui.views.systray import SysTrayIcon
-from utils import audio_player
-from utils.gobal_components import wav_handler
+# from utils import audio_player
+from core.gobal_components import wav_handler
 
 APP_PATH = os.path.dirname(__name__)
 
@@ -143,7 +143,7 @@ class Application(
     chatBox: FlyoutChatBox
     llm: AbstractChatClient
     tts: AbstractTTSClient
-    audioPlayer: audio_player.AudioPlayer | None
+    audioPlayer: AudioPlayer | None
     signals: Signals
     setting: Settings
     chat_filter: Filter
@@ -153,7 +153,7 @@ class Application(
         self.app = QApplication()
         self.config = config
         self.scene = Live2DScene()
-        self.audioPlayer = audio_player.AudioPlayer()
+        self.audioPlayer = AudioPlayer()
         self.chatBox = FlyoutChatBox(self.scene)
         self.l2d_model = Live2DModel()
         self.systray = SysTrayIcon()

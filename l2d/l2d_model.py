@@ -11,7 +11,7 @@ from core.audio_generator import AudioGenerator
 from live2d.v3.params import StandardParams
 from ui.views.l2d_scene import Live2DScene
 from utils import file_util
-from utils.gobal_components import wav_handler
+from core.gobal_components import wav_handler
 
 
 class Live2DModel(Live2DScene.CallbackSet):

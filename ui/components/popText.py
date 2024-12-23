@@ -6,8 +6,10 @@ from core.lock import Lockable
 文本弹出框
 """
 
+
 class PopText(Lockable):
     currentTip: TeachingTip | None
+
     def __init__(self, target):
         super().__init__()
         self.target = target
@@ -41,4 +43,3 @@ class PopText(Lockable):
         self.currentTip.close()
         self.currentTip = None
         print("text pop finished")
-
