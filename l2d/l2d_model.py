@@ -1,4 +1,5 @@
 import io
+import json
 import os
 from abc import ABC, abstractmethod
 
@@ -9,8 +10,8 @@ import live2d.v3 as live2d
 from config.application_config import ApplicationConfig
 from core.audio_generator import AudioGenerator
 from live2d.v3.params import StandardParams
+from resources.resource import RESOURCE_DIR
 from ui.views.l2d_scene import Live2DScene
-from utils import file_util
 from core.gobal_components import wav_handler
 
 
@@ -50,9 +51,14 @@ class Live2DModel(Live2DScene.CallbackSet):
         """
         初始化
         """
+        def get_live2d_texture_path(model_json_path):
+            with open(model_json_path, 'r', encoding='utf-8') as json_file:
+                json_data = json.load(json_file)
+            textures = json_data.get('FileReferences', {}).get('Textures')[0]
+            return os.path.join(RESOURCE_DIR, textures)
         self.initialize = True
         self.load_model()
-        self.model_texture = QImage(file_util.get_live2d_texture_path(os.path.join(
+        self.model_texture = QImage(get_live2d_texture_path(os.path.join(
             self.config.resource_dir.value, self.config.live2d_name.value,
             self.config.live2d_name.value + '.model3.json'
         )))
@@ -130,9 +136,9 @@ class Live2DModel(Live2DScene.CallbackSet):
     def startMontion(self, group, no, priority):
         self.model.StartMotion(group, no, priority)
 
-    def startOnMotionHandler(self, group, no, audio_wav: io.BytesIO = None | AudioGenerator):
+    def startOnMotionHandler(self, group, no, audio: io.BytesIO = None | AudioGenerator):
         self.motionFinished = False
-        self.callbackSet.onPlaySound(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio_wav)
+        self.callbackSet.onPlaySound(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio)
         self.callbackSet.onPlayText(group, no)
 
     def startRandomMotion(self, group, no):

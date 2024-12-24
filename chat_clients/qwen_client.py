@@ -30,10 +30,10 @@ class QwenClient(AbstractChatClient):
         atexit.register(self.hook)
 
     def get_model_inputs(self, message):
-        self.memory.append({
-            "role": "user",
-            "content": message
-        })
+        # self.memory.append({
+        #     "role": "user",
+        #     "content": message
+        # })
         messages = [
                        {"role": "system", "content": self.system_prompt},
                        {"role": "user", "content": message}
@@ -44,23 +44,15 @@ class QwenClient(AbstractChatClient):
         return model_inputs
     def chat(self, message) -> str:
         model_inputs = self.get_model_inputs(message)
-        # self.memory.append({
-        #     "role": "user",
-        #     "content": message
-        # })
-        # messages = [
-        #                {"role": "system", "content": self.system_prompt},
-        #                {"role": "user", "content": message}
-        #            ] + self.memory
-        # text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-
-        # model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
-
         generated_ids = self.model.generate(**model_inputs, max_new_tokens=512)
         generated_ids = [
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
         ]
         response = self.tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        self.memory.append({
+            "role": "user",
+            "content": message
+        })
         self.memory.append({
             "role": "assistant",
             "content": response

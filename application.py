@@ -31,7 +31,6 @@ from ui.views.flyout_chatbox import FlyoutChatBox
 from ui.views.l2d_scene import Live2DScene
 from ui.views.settings import Settings
 from ui.views.systray import SysTrayIcon
-# from utils import audio_player
 from core.gobal_components import wav_handler
 
 APP_PATH = os.path.dirname(__name__)
@@ -105,7 +104,7 @@ class Application(
                 self.l2d_model.model.SetParameterValue(StandardParams.ParamMouthOpenY,
                                                        wav_handler.GetRms() * 1.0, 1)
         print("启动流式播放线程")
-        threading.Thread(target=self.audioPlayer.play_audio_stream, args=(audio_generate, play_front, None, 22050,),
+        threading.Thread(target=self.audioPlayer.play_audio_stream, args=(audio_generate, play_front, None,),
                          daemon=True).start()
 
     def onMotionSoundFinished(self):
@@ -209,9 +208,9 @@ class Application(
         self.chatBox.disable()
         self.popText.fadeOut()
         self.popText.lock()
-        threading.Thread(target=self.chatMontion, args=(text,), daemon=True).start()
+        threading.Thread(target=self.chatMotion, args=(text,), daemon=True).start()
 
-    def chatMontion(self, text):
+    def chatMotion(self, text):
         """
         开始一个 chat 动作
         """
@@ -223,6 +222,7 @@ class Application(
             if self.config.tts_stream.value:
                 print("generate audio by stream mode")
                 audio_generate = AudioGenerator()
+                # 子线程流式生成音频
                 threading.Thread(target=self.tts.generate_audio_stream, args=(response, audio_generate,),
                                  daemon=True).start()
                 self.signals.llm_callback_signal.emit(response, None, audio_generate)
@@ -236,9 +236,11 @@ class Application(
             self.popText.fadeOut()
             self.popText.unlock()
 
-    def chatCallback(self, msg: str, audio_io: io.BytesIO , audio_generator: AudioGenerator):
+    def chatCallback(self, msg: str, audio_io: io.BytesIO, audio_generator: AudioGenerator):
         """
         llm 返回响应回调
+        audio_io: 音频ioByte,对应默认生成
+        audio_generator: 自定义音频迭代器，对应流式生成
         """
         print("start a chat motion")
         audio = None

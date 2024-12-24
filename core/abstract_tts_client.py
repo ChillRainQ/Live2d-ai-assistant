@@ -1,12 +1,12 @@
 import abc
 import io
 
+from core.audio_device import AudioPlayer
 from core.audio_generator import AudioGenerator
-from utils.audio_player import AudioPlayer
 
 
 class AbstractTTSClient(metaclass=abc.ABCMeta):
-    audio_player = AudioPlayer()
+    audio_player: AudioPlayer()
     type: str
     model: object
 
