@@ -8,6 +8,7 @@ import OpenGL.GL as gl
 import core.send_event_back_application_win
 from config.application_config import ApplicationConfig
 import live2d.v3 as live2d
+from core.gobal_components import i18n
 
 
 class Live2DScene(QOpenGLWidget):
@@ -92,7 +93,8 @@ class Live2DScene(QOpenGLWidget):
         # 设置为透明
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         # 设置穿透
-        print(f'鼠标穿透为：{self.config.clickPenetrate.value}')
+        # l2d_scene.setupAttributes.clickPenetrate.value
+        print(f'{i18n.get_str("ui.views.l2d_scene.setupAttributes.clickPenetrate.value")}{self.config.clickPenetrate.value}')
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, self.config.clickPenetrate.value)
         self.setWindowTitle("live 2d scene")
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, self.config.stay_on_top.value)
@@ -157,7 +159,7 @@ class Live2DScene(QOpenGLWidget):
         """
         鼠标按下事件
         """
-        if not self.isIngoreArea(event):
+        if not self.isIgnoreArea(event):
             core.send_event_back_application_win.click_back_app(event.globalX(),
                                                                 event.globalY(),
                                                                 event.button())
@@ -170,7 +172,7 @@ class Live2DScene(QOpenGLWidget):
         """
         鼠标释放事件
         """
-        if not self.isIngoreArea(event):
+        if not self.isIgnoreArea(event):
             core.send_event_back_application_win.click_back_app(event.globalX(),
                                                                 event.globalY(),
                                                                 event.button())
@@ -186,14 +188,14 @@ class Live2DScene(QOpenGLWidget):
         """
         鼠标拖拽事件
         """
-        if self.isIngoreArea(event) and (event.buttons() & Qt.MouseButton.LeftButton):
+        if self.isIgnoreArea(event) and (event.buttons() & Qt.MouseButton.LeftButton):
             # 计算并移动窗口位置
             self.move(event.globalX() - self.lastX, event.globalY() - self.lastY)
             self.config.lastX.value = self.x()
             self.config.lastY.value = self.y()
             self.isMoving = True
 
-    def isIngoreArea(self, event: QMouseEvent):
+    def isIgnoreArea(self, event: QMouseEvent):
         height = self.height()
         x, y = event.pos().x(), event.pos().y()
         alpha = gl.glReadPixels(x * self.windowScale, (height - y) * self.windowScale, 1, 1, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)[3]

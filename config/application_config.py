@@ -1,9 +1,18 @@
-from qfluentwidgets import ConfigItem, QConfig, RangeConfigItem, RangeValidator, BoolValidator
+import os
+
+from qfluentwidgets import ConfigItem, QConfig, RangeConfigItem, RangeValidator, BoolValidator, OptionsConfigItem, \
+    OptionsValidator
+
+from core.gobal_components import i18n
 
 
+# def lang_list_init():
+#     return [f.split('.')[0] for f in os.listdir(i18n.get_lang_dir()) if f.endswith('.lang')]
+
+
+# def model_list_init():
+#     pass
 class ApplicationConfig(QConfig):
-
-
     live2d_name: ConfigItem = ConfigItem("live2d", "name", "nn")
     resource_dir: ConfigItem = ConfigItem("live2d", "resource_dir", "resources/v3")
     scale: RangeConfigItem = RangeConfigItem("live2d", "scale", 1.0, RangeValidator(0, 1))
@@ -37,7 +46,19 @@ class ApplicationConfig(QConfig):
     llm_prompts: list = []
     llm_current_prompt_name: ConfigItem = ConfigItem("llm", "llm_current_prompt", "")
     audio_volume: RangeConfigItem = RangeConfigItem("audio", "audio_volume", 100, RangeValidator(0, 100))
-
-
+    _language_list: list = [f.split('.')[0] for f in os.listdir(i18n.get_lang_dir()) if f.endswith('.lang')]
+    language: OptionsConfigItem = OptionsConfigItem("application", "language", "zh_cn", OptionsValidator(_language_list))
     def setup(self):
-        pass
+        # self._language_list = lang_list_init()
+        # model_list_init()
+        self.slotConnectSignal()
+        i18n.set_language(self.language.value)
+
+
+
+
+    def slotConnectSignal(self):
+        self.language.valueChanged.connect(i18n.set_language)
+
+
+

@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QHBoxLayout, QWidget
 from qfluentwidgets import  FlyoutViewBase, LineEdit, PrimaryToolButton, FluentIcon, ToolButton
 
 from config.application_config import ApplicationConfig
+from core.gobal_components import i18n
 
 
 class ChatBoxView(FlyoutViewBase):
@@ -64,7 +65,8 @@ class FlyoutChatBox(QWidget):
             signal.connect(slot)
 
     def __sendSignalAction(self):
-        print("发送自定义信号：sendSignalAction")
+        # flyout_chatbox.__sendSignalAction.emit
+        print(f'{i18n.get_str("ui.views.flyout_chatbox.__sendSignalAction.emit")}')
         if len(self.view.lineEdit.text()) > 0:
             self.sendMessageSignal.emit(self.view.lineEdit.text())
         self.view.lineEdit.clear()

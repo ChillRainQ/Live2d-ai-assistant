@@ -5,8 +5,7 @@ from json import JSONDecodeError
 from typing import Iterator
 
 from config.application_config import ApplicationConfig
-
-
+from core.gobal_components import i18n
 
 MEMORY_NAME = "memory.json"
 class AbstractChatClient(ABC):
@@ -25,20 +24,24 @@ class AbstractChatClient(ABC):
         raise NotImplementedError
 
     def save_memory(self, filename: str):
-        print("memory serializable....")
+        #
+        print(f'{i18n.get_str("core.abstract_chat_client.save_memory.serializable")}')
         with open(MEMORY_NAME, 'w', encoding='utf-8') as f:
             json.dump(self.memory, f, ensure_ascii=False, sort_keys=True, indent=4)
 
     def load_memory(self, filename: str):
         if not os.path.exists(MEMORY_NAME):
-            print("Memory file not found")
+            # core.abstract_chat_client.load_memory.not_found
+            print(f'{i18n.get_str("core.abstract_chat_client.load_memory.not_found")}')
             return []
         try:
             with open(MEMORY_NAME, 'r', encoding='utf-8') as f:
-                print("Found Memory")
+                # core.abstract_chat_client.load_memory.found
+                print(f'{i18n.get_str("core.abstract_chat_client.load_memory.found")}')
                 return json.load(f)
         except JSONDecodeError:
-            print("Memory file is corrupted")
+            # core.abstract_chat_client.load_memory.corrupted
+            print(f'{i18n.get_str("core.abstract_chat_client.load_memory.corrupted")}')
             return []
 
     def hook(self):

@@ -31,7 +31,7 @@ from ui.views.flyout_chatbox import FlyoutChatBox
 from ui.views.l2d_scene import Live2DScene
 from ui.views.settings import Settings
 from ui.views.systray import SysTrayIcon
-from core.gobal_components import wav_handler
+from core.gobal_components import wav_handler, i18n
 
 APP_PATH = os.path.dirname(__name__)
 
@@ -50,29 +50,37 @@ class Application(
     def onPlaySound(self, group: str, no: int, audio_wav: io.BytesIO | AudioGenerator):
         stream = self.config.tts_stream.value
         if isinstance(audio_wav, io.BytesIO) and not stream:
-            print('default mode')
+            # application.onPlaySound.playMode.default
+            print(f'{i18n.get_str("application.onPlaySound.playMode.default")}')
             self._playAudioAndSync(audio_wav)
         elif isinstance(audio_wav, AudioGenerator) and stream:
-            print("stream mode")
+            # application.onPlaySound.playMode.stream
+            print(f'{i18n.get_str("application.onPlaySound.playMode.stream")}')
             self._playAudioStreamAndSync(audio_wav)
         else:
-            print("没有音频数据可播放")
+            # application.onPlaySound.playMode.none
+            print(f'{i18n.get_str("application.onPlaySound.playMode.none")}')
 
     def _playAudioAndSync(self, audio_wav: io.BytesIO):
         """
         常规音频播放
         """
-        print("开始播放语音default mode")
+        # application.playAudioAndSync.play.default
+        print(f'{i18n.get_str("application.playAudioAndSync.play.default")}')
         if audio_wav is None:
             return
         threading.Thread(target=self.audioPlayer.play_audio, args=(audio_wav,)).start()
-        print("语音播放完成")
+        # application.playAudioAndSync.play.done
+        print(f'{i18n.get_str("application.playAudioAndSync.play.done")}')
         wav_handler.Start(audio_wav)
-        print("口型同步已设定")
+        # application.playAudioAndSync.setMouthSync
+        print(f'{i18n.get_str("application.setMouthSync.done")}')
         if wav_handler.Update():
             # 设置模型口型
-            print('尝试口型同步')
-            print(f'响度：{wav_handler.GetRms()}')
+            # application.setMouthSync.done
+            print(f'{i18n.get_str("application.setMouthSync.done")}')
+            # application.setMouthSync.wav
+            print(f'{i18n.get_str("application.setMouthSync.wav")}{wav_handler.GetRms()}')
             self.l2d_model.model.SetParameterValue(StandardParams.ParamMouthOpenY,
                                                    wav_handler.GetRms() * 1.0, 1)
 
@@ -83,12 +91,14 @@ class Application(
         当前问题： 1.没有播放音频
                 2.瞬间完成执行（弹出了对话框）
         """
-        print("开始播放语音stream mode")
+        # application.playAudioStreamAndSync.play.stream
+        print(f'{i18n.get_str("application.playAudioStreamAndSync.play.stream")}')
         def play_front(chunk: np.ndarray):
             if chunk.dtype == np.float32:
                 np_array = np.int16(chunk * 32767)
             else:
-                raise TypeError("音频类型错误，只支持 float32")
+                # application.playAudioStreamAndSync.play_front.typeError
+                raise TypeError(f'{i18n.get_str("application.playAudioStreamAndSync.play_front.typeError")}')
             wav = io.BytesIO()
             with wave.open(wav, 'wb') as file:
                 file.setnchannels(1)  # 单声道
@@ -99,11 +109,14 @@ class Application(
             wav_handler.Start(wav)
             if wav_handler.Update():
                 # 设置模型口型
-                print('尝试口型同步')
-                print(f'响度：{wav_handler.GetRms()}')
+                # application.setMouthSync.done
+                print(f'{i18n.get_str("application.setMouthSync.done")}')
+                # application.setMouthSync.wav
+                print(f'{i18n.get_str("application.setMouthSync.wav")}{wav_handler.GetRms()}')
                 self.l2d_model.model.SetParameterValue(StandardParams.ParamMouthOpenY,
                                                        wav_handler.GetRms() * 1.0, 1)
-        print("启动流式播放线程")
+        # application.playAudioStreamAndSync.play.start
+        print(f'{i18n.get_str("application.playAudioStreamAndSync.play.start")}')
         threading.Thread(target=self.audioPlayer.play_audio_stream, args=(audio_generate, play_front, None,),
                          daemon=True).start()
 
@@ -217,19 +230,23 @@ class Application(
         try:
             now = time.time()
             response = self.llm.chat(text)
-            print(f"response time：{time.time() - now}")
+            # application.chatMotion.responseTime
+            print(f'{i18n.get_str("application.chatMotion.responseTime")}{time.time() - now}')
             now = time.time()
             if self.config.tts_stream.value:
-                print("generate audio by stream mode")
+                # application.audio.mode.default
+                print(f'{i18n.get_str("application.audio.mode.default")}')
                 audio_generate = AudioGenerator()
                 # 子线程流式生成音频
                 threading.Thread(target=self.tts.generate_audio_stream, args=(response, audio_generate,),
                                  daemon=True).start()
                 self.signals.llm_callback_signal.emit(response, None, audio_generate)
             else:
-                print("generate audio by default mode")
+                # application.chatMotion.audio.mode.stream
+                print(f'{i18n.get_str("application.chatMotion.audio.mode.stream")}')
                 audio = asyncio.run(self.tts.generate_audio(response))
-                print(f"audio time：{time.time() - now}")
+                # application.chatMotion.audio.time
+                print(f'{i18n.get_str("application.chatMotion.audio.time")}{time.time() - now}')
                 self.signals.llm_callback_signal.emit(response, audio, None)
         finally:
             self.chatBox.enable()
@@ -242,7 +259,8 @@ class Application(
         audio_io: 音频ioByte,对应默认生成
         audio_generator: 自定义音频迭代器，对应流式生成
         """
-        print("start a chat motion")
+        # application.chatCallback.start
+        print(f'{i18n.get_str("application.chatCallback.start")}')
         audio = None
         if audio_io is not None:
             audio = audio_io
@@ -258,12 +276,16 @@ class Application(
 
 
 if __name__ == '__main__':
+    # application.main.init
     print("application init....")
     config = ApplicationConfig()
     app = Application(config)
+    # application.main.loadConfig
     print("load config....")
     app.load_config()
+    # application.main.setupApp
     print("setup app....")
     app.setup()
+    # application.main.runApp
     print("run app....")
     app.start()

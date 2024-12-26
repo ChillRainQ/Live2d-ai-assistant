@@ -1,5 +1,6 @@
 from core.abstract_tts_client import AbstractTTSClient
 import config.yaml_config_loader
+from core.gobal_components import i18n
 
 
 class TTSClientFactory:
@@ -17,5 +18,6 @@ class TTSClientFactory:
             tts = EdgeTTSClient(tts_config.get('edgetts'))
         else:
             pass
-        print(f'现在使用的 TTS 为：{tts.type}')
+        # core.tts_factory.create.tts_type
+        print(f'{i18n.get_str("core.tts_factory.create.tts_type")}{tts.type}')
         return tts
