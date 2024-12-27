@@ -20,11 +20,14 @@ class I18N:
         """
         从 i18n 读取文本
         """
-        string = self.str_map.get(self.language + '-' + key)
+
+        string = self.str_map.get(f"{self.language}-{key}", f"en-us-{key}")
         if string is None:
-            string = self.str_map.get("en_us-" + key)
-            if string is None:
-                raise Exception("i18n error: " + key)
+            raise KeyError("i18n error: " + key)
+        # if string is None:
+        #     string = self.str_map.get("en_us-" + key)
+        #     if string is None:
+        #         raise KeyError("i18n error: " + key)
         return string
 
     def get_lang_dir(self):
