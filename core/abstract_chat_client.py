@@ -1,12 +1,12 @@
 import json
 import os.path
+import pickle
 from abc import ABC, abstractmethod
 from json import JSONDecodeError
 from typing import Iterator
 
 from config.application_config import ApplicationConfig
 from core.gobal_components import i18n
-
 MEMORY_NAME = "memory.json"
 class AbstractChatClient(ABC):
     prompt: str
@@ -46,4 +46,7 @@ class AbstractChatClient(ABC):
 
     def hook(self):
         self.save_memory(MEMORY_NAME)
+
+
+
 

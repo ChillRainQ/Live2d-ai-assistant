@@ -1,13 +1,16 @@
 
+
+from qfluentwidgets import qconfig
+
 from application import Application
-from config.application_config import ApplicationConfig
+from config.application_config import ApplicationConfig, CONFIG_FILE
 from core.gobal_components import i18n
 
-config = ApplicationConfig()
-config.setup()
+appConfig = ApplicationConfig()
+appConfig.setup()
+qconfig.load(CONFIG_FILE, appConfig)
 
 if __name__ == '__main__':
-
     # print("application init....")
     # app = Application(config)
     # print("load config....")
@@ -19,7 +22,7 @@ if __name__ == '__main__':
 
     # main.main.init
     print(f"{i18n.get_str('main.main.init')}")
-    app = Application(config)
+    app = Application(appConfig)
     # main.main.loadConfig
     print(f"{i18n.get_str('main.main.loadConfig')}")
     app.load_config()
@@ -29,3 +32,5 @@ if __name__ == '__main__':
     # main.main.runApp
     print(f"{i18n.get_str('main.main.runApp')}")
     app.start()
+
+

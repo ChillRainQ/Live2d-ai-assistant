@@ -6,12 +6,9 @@ from qfluentwidgets import ConfigItem, QConfig, RangeConfigItem, RangeValidator,
 from core.gobal_components import i18n
 
 
-# def lang_list_init():
-#     return [f.split('.')[0] for f in os.listdir(i18n.get_lang_dir()) if f.endswith('.lang')]
-
-
-# def model_list_init():
-#     pass
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE_NAME = "config.json"
+CONFIG_FILE = os.path.join(CURRENT_DIR, CONFIG_FILE_NAME)
 class ApplicationConfig(QConfig):
     live2d_name: ConfigItem = ConfigItem("live2d", "name", "nn")
     resource_dir: ConfigItem = ConfigItem("live2d", "resource_dir", "resources/v3")
@@ -38,19 +35,20 @@ class ApplicationConfig(QConfig):
     asr: ConfigItem = ConfigItem("asr", "asr", False, BoolValidator())
     asr_type: ConfigItem = ConfigItem("asr", "asr_type", "baidu")
 
+    tts_list: list = ['edgetts', 'cosyvoice']
     tts: ConfigItem = ConfigItem("tts", "tts", False, BoolValidator())
-    tts_type: ConfigItem = ConfigItem("tts", "tts_type", "cosyvoice")
+    tts_type: OptionsConfigItem = OptionsConfigItem("tts", "tts_type", "cosyvoice", OptionsValidator(tts_list))
     tts_stream: ConfigItem = ConfigItem("tts", "tts_stream", False, BoolValidator())
 
-    llm_type: ConfigItem = ConfigItem("llm", "llm_type", "qwen")
-    llm_prompts: list = []
+    llm_list: list = ['qwen', 'fake']
+    llm_type: OptionsConfigItem = OptionsConfigItem("llm", "llm_type", "fake", OptionsValidator(llm_list))
+    # llm_type: ConfigItem = ConfigItem("llm", "llm_type", "qwen")
     llm_current_prompt_name: ConfigItem = ConfigItem("llm", "llm_current_prompt", "")
     audio_volume: RangeConfigItem = RangeConfigItem("audio", "audio_volume", 100, RangeValidator(0, 100))
-    _language_list: list = [f.split('.')[0] for f in os.listdir(i18n.get_lang_dir()) if f.endswith('.lang')]
-    language: OptionsConfigItem = OptionsConfigItem("application", "language", "zh_cn", OptionsValidator(_language_list))
+    language_list: list = [f.split('.')[0] for f in os.listdir(i18n.get_lang_dir()) if f.endswith('.lang')]
+    language: OptionsConfigItem = OptionsConfigItem("application", "language", "en_us", OptionsValidator(language_list))
+
     def setup(self):
-        # self._language_list = lang_list_init()
-        # model_list_init()
         self.slotConnectSignal()
         i18n.set_language(self.language.value)
 
@@ -59,6 +57,7 @@ class ApplicationConfig(QConfig):
 
     def slotConnectSignal(self):
         self.language.valueChanged.connect(i18n.set_language)
+
 
 
 

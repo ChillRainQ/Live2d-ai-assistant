@@ -76,9 +76,10 @@ class Live2DScene(QOpenGLWidget):
         # 设置窗口大小
         self.resize(self.config.width.value, self.config.height.value)
         # 设置位置
-        screen = QApplication.primaryScreen()
-        geometry = screen.geometry()
-        self.move(geometry.width() - self.width(), geometry.height() - self.height())
+        # screen = QApplication.primaryScreen()
+        # geometry = screen.geometry()
+        # self.move(geometry.width() - self.width(), geometry.height() - self.height())
+        self.move(self.config.lastX.value, self.config.lastY.value)
         # 绑定信号槽
         self.signalConnectSlot()
 

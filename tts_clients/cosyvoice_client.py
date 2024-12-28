@@ -1,3 +1,4 @@
+import atexit
 import io
 import os
 
@@ -20,6 +21,7 @@ class CosyVoiceClient(AbstractTTSClient):
         self.model = CosyVoice(config.get('model'))
         self.prompt_speech = load_wav(config.get('prompt_speech'), 16000)
         self.prompt_text = config.get('prompt_text').strip()
+        atexit.register(self.hook)
 
     async def generate_audio(self, text: str):
         audios = []

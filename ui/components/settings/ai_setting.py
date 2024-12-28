@@ -1,11 +1,11 @@
 from config.application_config import ApplicationConfig
-from ui.components.design.application_setting_design import ApplicationSettingDesign
+from ui.components.design.ai_setting_design import AiSettingDesign
 
 
-class SceneShowSetting(ApplicationSettingDesign):
+class AiSetting(AiSettingDesign):
     config: ApplicationConfig
 
     def __init__(self, config: ApplicationConfig):
         super().__init__(config)
         self.config = config
-        self.setObjectName("scene_show_setting")
+        self.setObjectName("ai_setting")

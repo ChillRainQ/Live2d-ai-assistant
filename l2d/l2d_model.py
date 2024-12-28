@@ -12,7 +12,7 @@ from core.audio_generator import AudioGenerator
 from live2d.v3.params import StandardParams
 from resources.resource import RESOURCE_DIR
 from ui.views.l2d_scene import Live2DScene
-from core.gobal_components import wav_handler
+from core.gobal_components import wav_handler, i18n
 
 
 class Live2DModel(Live2DScene.CallbackSet):
@@ -152,4 +152,4 @@ class Live2DModel(Live2DScene.CallbackSet):
 
     def setMotionFinished(self):
         self.motionFinished = True
-        print("motion finished")
+        print(f'{i18n.get_str("l2d.l2d_model.setMotionFinished")}')

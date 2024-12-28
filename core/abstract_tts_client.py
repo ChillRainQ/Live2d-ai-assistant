@@ -1,8 +1,11 @@
 import abc
 import io
+import pickle
 
 from core.audio_device import AudioPlayer
 from core.audio_generator import AudioGenerator
+
+
 
 
 class AbstractTTSClient(metaclass=abc.ABCMeta):
@@ -20,3 +23,7 @@ class AbstractTTSClient(metaclass=abc.ABCMeta):
 
     async def play_audio(self, audio_file: io.BytesIO):
         self.audio_player.play_audio(audio_file)
+
+    def hook(self):
+        pass
+

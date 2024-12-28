@@ -1,4 +1,5 @@
 import asyncio
+import atexit
 import io
 import os
 import sys
@@ -7,6 +8,7 @@ import time
 import wave
 
 import numpy as np
+from qfluentwidgets import qconfig
 
 import live2d.v3 as live2d
 from PySide6.QtCore import QTimer, Signal, QObject
@@ -69,13 +71,13 @@ class Application(
         print(f'{i18n.get_str("application.playAudioAndSync.play.default")}')
         if audio_wav is None:
             return
-        threading.Thread(target=self.audioPlayer.play_audio, args=(audio_wav,)).start()
         # application.playAudioAndSync.play.done
         print(f'{i18n.get_str("application.playAudioAndSync.play.done")}')
         wav_handler.Start(audio_wav)
         # application.playAudioAndSync.setMouthSync
         print(f'{i18n.get_str("application.setMouthSync.done")}')
         if wav_handler.Update():
+            threading.Thread(target=self.audioPlayer.play_audio, args=(audio_wav,)).start()
             # 设置模型口型
             # application.setMouthSync.done
             print(f'{i18n.get_str("application.setMouthSync.done")}')
@@ -148,6 +150,7 @@ class Application(
         self.scene.show()
 
     def openSettings(self):
+        # Settings(self.config).show()
         self.setting.show()
 
     app: QApplication
@@ -176,12 +179,14 @@ class Application(
         """
         加载配置
         """
+
         self.config.llm_prompts = prompts_loader.get_personalities_list()
 
     def setup(self):
         """
         设置应用程序
         """
+        atexit.register(self.save)
         live2d.init()
         self.llm = ChatClientFactory.create(self.config.llm_type.value)
         self.tts = TTSClientFactory.create(self.config.tts_type.value)
@@ -190,13 +195,37 @@ class Application(
         self.scene.setup(self.config, self.l2d_model)
         self.systray.setup(self.config, self)
         self.chatBox.setup(self.config)
-        self.setting.setup(self.config)
+        self.setting.setup()
         self.popText = PopText(self.scene)
         self.signalConnectSlot()
+
+    # def getLLM(self):
+    #     llm = life.get_llm()
+    #     if llm is None:
+    #         llm = ChatClientFactory.create(self.config.llm_type.value)
+    #     return llm
+    #
+    # def getTTS(self):
+    #     tts = life.get_tts()
+    #     if tts is None:
+    #         tts = TTSClientFactory.create(self.config.tts_type.value)
+    #     return tts
+
+
 
     def signalConnectSlot(self):
         self.chatBox.sendMessageSignal.connect(self.chat)
         self.signals.llm_callback_signal.connect(self.chatCallback)
+        self.config.llm_type.valueChanged.connect(self.flash_llm)
+        self.config.tts_type.valueChanged.connect(self.flash_tts)
+
+    def flash_llm(self):
+        del self.llm
+        self.llm = ChatClientFactory.create(self.config.llm_type.value)
+
+    def flash_tts(self):
+        del self.tts
+        self.tts = TTSClientFactory.create(self.config.tts_type.value)
 
     def start(self):
         """
@@ -205,6 +234,13 @@ class Application(
         self.scene.start()
         self.systray.start()
         self.app.exec()
+
+    def save(self) -> None:
+        """
+        保存配置
+        """
+        self.config.save()
+        print(f'{i18n.get_str("application.save.done")}')
 
     def exit(self):
         """
@@ -234,16 +270,17 @@ class Application(
             print(f'{i18n.get_str("application.chatMotion.responseTime")}{time.time() - now}')
             now = time.time()
             if self.config.tts_stream.value:
-                # application.audio.mode.default
-                print(f'{i18n.get_str("application.audio.mode.default")}')
+                # application.chatMotion.audio.mode.stream
+                print(f'{i18n.get_str("application.chatMotion.audio.mode.stream")}')
+
                 audio_generate = AudioGenerator()
                 # 子线程流式生成音频
                 threading.Thread(target=self.tts.generate_audio_stream, args=(response, audio_generate,),
                                  daemon=True).start()
                 self.signals.llm_callback_signal.emit(response, None, audio_generate)
             else:
-                # application.chatMotion.audio.mode.stream
-                print(f'{i18n.get_str("application.chatMotion.audio.mode.stream")}')
+                # application.audio.mode.default
+                print(f'{i18n.get_str("application.audio.mode.default")}')
                 audio = asyncio.run(self.tts.generate_audio(response))
                 # application.chatMotion.audio.time
                 print(f'{i18n.get_str("application.chatMotion.audio.time")}{time.time() - now}')

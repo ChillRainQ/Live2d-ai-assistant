@@ -1,4 +1,5 @@
 import asyncio
+import atexit
 from io import BytesIO
 from typing import Tuple
 
@@ -18,6 +19,7 @@ class EdgeTTSClient(AbstractTTSClient):
         self.type = 'edge_tts'
         self.model = None
         self.voice = config.get('voice')
+        atexit.register(self.hook)
 
     async def generate_audio(self, text: str) -> BytesIO:
         communicate = edge_tts.Communicate(text, self.voice)
