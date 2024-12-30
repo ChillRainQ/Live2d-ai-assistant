@@ -60,6 +60,8 @@ class SysTrayIcon(QSystemTrayIcon):
         menu.addAction(self.action_ls[-1])
         self.setContextMenu(menu)
 
+
+
     def signalConnectSlot(self):
         self.activated.connect(self.activatedAction)
 
@@ -89,6 +91,7 @@ class SysTrayIcon(QSystemTrayIcon):
                 action.setCheckable(True)
                 action.setChecked(values[idx])
             action.triggered.connect(functions[idx])
+        self.signalConnectSlot()
 
     def start(self):
         self.show()
@@ -98,8 +101,9 @@ class SysTrayIcon(QSystemTrayIcon):
         托盘动作
         """
         if reason == self.ActivationReason.Context:
-            self.contextMenu().show()
+            print(self.contextMenu().sizeHint().height(), " menu")
             self.contextMenu().move(QCursor.pos().x(), QCursor.pos().y() - self.contextMenu().height())
+            self.contextMenu().show()
 
         if reason == self.ActivationReason.DoubleClick:
             self.callbackSet.trayDoubleClicked()
