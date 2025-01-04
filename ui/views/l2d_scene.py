@@ -1,16 +1,22 @@
+import os.path
 from abc import ABC, abstractmethod
 
 import OpenGL.GL as gl
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QCursor, QMouseEvent
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QCursor, QMouseEvent, QIcon, QPainter, QPixmap
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
+from qfluentwidgets import SplashScreen
+from qfluentwidgets.components.widgets.frameless_window import FramelessWindow
 
 import core.send_event_back_application_win
 import live2d.v3 as live2d
+
+import resources.resource
 from config.application_config import ApplicationConfig
 from core.gobal_components import i18n
 
 
+# class Live2DScene(QOpenGLWidget, FramelessWindow):
 class Live2DScene(QOpenGLWidget):
     class CallbackSet(ABC):
         @abstractmethod
@@ -58,7 +64,7 @@ class Live2DScene(QOpenGLWidget):
     jiffies: int
 
     def __init__(self):
-        super().__init__()
+        QOpenGLWidget.__init__(self)
         self.config = None
         self.lastX = -1
         self.lastY = -1

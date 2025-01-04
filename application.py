@@ -35,6 +35,7 @@ from ui.components.settings.ai_setting import AiSetting
 from ui.views.flyout_chatbox import FlyoutChatBox
 from ui.views.l2d_scene import Live2DScene
 from ui.views.settings import Settings
+from ui.views.start_scene import StartScene
 from ui.views.systray import SysTrayIcon
 from core.gobal_components import wav_handler, i18n
 
@@ -204,6 +205,7 @@ class Application(
         super().__init__()
         self.app = QApplication()
         self.config = config
+        self.start_scene = StartScene(self.config)
         self.scene = Live2DScene()
         self.audioPlayer = AudioPlayer()
         self.chatBox = FlyoutChatBox(self.scene)
@@ -245,6 +247,8 @@ class Application(
         """
         启动
         """
+        self.start_scene.close()
+        del self.start_scene
         self.scene.start()
         self.systray.start()
         translator = FluentTranslator()
