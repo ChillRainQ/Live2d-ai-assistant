@@ -34,7 +34,7 @@ class ApplicationConfig(QConfig):
     asr: ConfigItem = ConfigItem("asr", "asr", False, BoolValidator())
     asr_type: ConfigItem = ConfigItem("asr", "asr_type", "baidu")
 
-    tts_list: list = ['edgetts', 'cosyvoice', 'GPTSoVITS']
+    tts_list: list = ['edgetts', 'GPTSoVITS']
     tts: ConfigItem = ConfigItem("tts", "tts", False, BoolValidator())
     tts_type: OptionsConfigItem = OptionsConfigItem("tts", "tts_type", "GPTSoVITS", OptionsValidator(tts_list))
     tts_stream: ConfigItem = ConfigItem("tts", "tts_stream", False, BoolValidator())
