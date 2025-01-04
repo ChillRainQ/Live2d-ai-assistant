@@ -1,5 +1,3 @@
-from typing import Union
-
 from PySide6.QtGui import QIcon
 from qfluentwidgets import SettingCard, RangeConfigItem, SpinBox, ConfigItem, ComboBox, FluentIconBase, DoubleSpinBox
 

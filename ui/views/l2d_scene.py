@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
+
+import OpenGL.GL as gl
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QCursor, QMouseEvent
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from PySide6.QtWidgets import QApplication
-import OpenGL.GL as gl
 
 import core.send_event_back_application_win
-from config.application_config import ApplicationConfig
 import live2d.v3 as live2d
+from config.application_config import ApplicationConfig
 from core.gobal_components import i18n
 
 

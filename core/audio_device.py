@@ -2,8 +2,8 @@ import io
 import threading
 
 import numpy as np
-from pydub import AudioSegment
 import sounddevice as sd
+from pydub import AudioSegment
 from pydub.utils import make_chunks
 
 from core.audio_generator import AudioGenerator

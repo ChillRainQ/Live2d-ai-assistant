@@ -1,6 +1,8 @@
-import wave
-import numpy as np
 import time
+import wave
+
+import numpy as np
+
 from .log import Info
 
 

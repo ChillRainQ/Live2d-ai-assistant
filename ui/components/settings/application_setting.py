@@ -3,6 +3,7 @@ from ui.components.design.application_setting_design import ApplicationSettingDe
 
 
 class SceneShowSetting(ApplicationSettingDesign):
+
     config: ApplicationConfig
 
     def __init__(self, config: ApplicationConfig):

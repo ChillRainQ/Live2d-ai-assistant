@@ -3,9 +3,10 @@ import time
 import wave
 
 import numpy as np
+from pydub import AudioSegment
+
 from live2d.utils.lipsync import WavHandler
 from live2d.utils.log import Info
-from pydub import AudioSegment
 
 
 class LocalWavHandler(WavHandler):

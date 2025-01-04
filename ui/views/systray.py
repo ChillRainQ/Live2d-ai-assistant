@@ -68,6 +68,7 @@ class SysTrayIcon(QSystemTrayIcon):
         self.setIcon(QIcon(self.config.icon.value))
         self.callbackSet = callbackSet
         self.setToolTip("Live2d AI Assistant")
+        self.signalConnectSlot()
 
         functions = [
             self.callbackSet.displayCharactor,

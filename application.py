@@ -8,7 +8,8 @@ import time
 import wave
 
 import numpy as np
-from qfluentwidgets import qconfig
+from PySide6.QtGui import Qt
+from qfluentwidgets import qconfig, InfoBar, InfoBarPosition, FluentTranslator
 
 import live2d.v3 as live2d
 from PySide6.QtCore import QTimer, Signal, QObject
@@ -17,6 +18,7 @@ from PySide6.QtWidgets import QApplication
 
 from core.audio_device import AudioPlayer
 from core.audio_generator import AudioGenerator
+from core.lock import Lockable
 from live2d.v3.params import StandardParams
 
 from config.application_config import ApplicationConfig
@@ -29,6 +31,7 @@ from core.llm_factory import ChatClientFactory
 from l2d.l2d_model import Live2DModel
 
 from ui.components.popText import PopText
+from ui.components.settings.ai_setting import AiSetting
 from ui.views.flyout_chatbox import FlyoutChatBox
 from ui.views.l2d_scene import Live2DScene
 from ui.views.settings import Settings
@@ -44,7 +47,8 @@ class Signals(QObject):
 
 class Application(
     Live2DModel.CallbackSet,
-    SysTrayIcon.CallbackSet
+    SysTrayIcon.CallbackSet,
+    AiSetting.CallBackSet,
 ):
     def onPlayText(self, group: str, no: int):
         pass
@@ -83,6 +87,7 @@ class Application(
             print(f'{i18n.get_str("application.setMouthSync.done")}')
             # application.setMouthSync.wav
             print(f'{i18n.get_str("application.setMouthSync.wav")}{wav_handler.GetRms()}')
+            time.sleep(0.5)
             self.l2d_model.model.SetParameterValue(StandardParams.ParamMouthOpenY,
                                                    wav_handler.GetRms() * 1.0, 1)
 
@@ -95,6 +100,7 @@ class Application(
         """
         # application.playAudioStreamAndSync.play.stream
         print(f'{i18n.get_str("application.playAudioStreamAndSync.play.stream")}')
+
         def play_front(chunk: np.ndarray):
             if chunk.dtype == np.float32:
                 np_array = np.int16(chunk * 32767)
@@ -117,6 +123,7 @@ class Application(
                 print(f'{i18n.get_str("application.setMouthSync.wav")}{wav_handler.GetRms()}')
                 self.l2d_model.model.SetParameterValue(StandardParams.ParamMouthOpenY,
                                                        wav_handler.GetRms() * 1.0, 1)
+
         # application.playAudioStreamAndSync.play.start
         print(f'{i18n.get_str("application.playAudioStreamAndSync.play.start")}')
         threading.Thread(target=self.audioPlayer.play_audio_stream, args=(audio_generate, play_front, None,),
@@ -150,8 +157,37 @@ class Application(
         self.scene.show()
 
     def openSettings(self):
-        # Settings(self.config).show()
         self.setting.show()
+
+    def flash_llm(self):
+        def flash():
+            del self.llm
+            self.llm = ChatClientFactory.create(self.config.llm_type.value)
+
+        flash()
+        InfoBar.success(
+            title='Success!',
+            content=f'已修改为：{self.llm.__class__.__name__}',
+            isClosable=True,
+            position=InfoBarPosition.TOP_RIGHT,
+            duration=2000,
+            parent=self.setting
+        )
+
+    def flash_tts(self):
+        def flash():
+            del self.tts
+            self.tts = TTSClientFactory.create(self.config.tts_type.value)
+
+        flash()
+        InfoBar.success(
+            title='Success!',
+            content=f'已修改为：{self.tts.__class__.__name__}',
+            isClosable=True,
+            position=InfoBarPosition.TOP_RIGHT,
+            duration=2000,
+            parent=self.setting
+        )
 
     app: QApplication
     config: ApplicationConfig
@@ -165,6 +201,7 @@ class Application(
     popText: PopText
 
     def __init__(self, config: ApplicationConfig):
+        super().__init__()
         self.app = QApplication()
         self.config = config
         self.scene = Live2DScene()
@@ -174,6 +211,7 @@ class Application(
         self.systray = SysTrayIcon()
         self.setting = Settings(self.config)
         self.signals = Signals()
+        self.lock = False
 
     def load_config(self):
         """
@@ -195,37 +233,13 @@ class Application(
         self.scene.setup(self.config, self.l2d_model)
         self.systray.setup(self.config, self)
         self.chatBox.setup(self.config)
-        self.setting.setup()
+        self.setting.setup(self)
         self.popText = PopText(self.scene)
         self.signalConnectSlot()
-
-    # def getLLM(self):
-    #     llm = life.get_llm()
-    #     if llm is None:
-    #         llm = ChatClientFactory.create(self.config.llm_type.value)
-    #     return llm
-    #
-    # def getTTS(self):
-    #     tts = life.get_tts()
-    #     if tts is None:
-    #         tts = TTSClientFactory.create(self.config.tts_type.value)
-    #     return tts
-
-
 
     def signalConnectSlot(self):
         self.chatBox.sendMessageSignal.connect(self.chat)
         self.signals.llm_callback_signal.connect(self.chatCallback)
-        self.config.llm_type.valueChanged.connect(self.flash_llm)
-        self.config.tts_type.valueChanged.connect(self.flash_tts)
-
-    def flash_llm(self):
-        del self.llm
-        self.llm = ChatClientFactory.create(self.config.llm_type.value)
-
-    def flash_tts(self):
-        del self.tts
-        self.tts = TTSClientFactory.create(self.config.tts_type.value)
 
     def start(self):
         """
@@ -233,6 +247,8 @@ class Application(
         """
         self.scene.start()
         self.systray.start()
+        translator = FluentTranslator()
+        self.app.installTranslator(translator)
         self.app.exec()
 
     def save(self) -> None:

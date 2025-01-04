@@ -1,5 +1,6 @@
 import atexit
 import os
+import pickle
 import time
 from typing import Iterator
 
@@ -8,6 +9,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, TextStreamer
 import prompts.prompts_loader
 from config.application_config import ApplicationConfig
 from core.abstract_chat_client import AbstractChatClient
+import config.yaml_config_loader
 
 """
 Qwen2.5 1.5B 客户端，建议使用的方式。 模型占用大概3G左右显存
@@ -30,15 +32,12 @@ class QwenClient(AbstractChatClient):
         atexit.register(self.hook)
 
     def get_model_inputs(self, message):
-        # self.memory.append({
-        #     "role": "user",
-        #     "content": message
-        # })
         messages = [
                        {"role": "system", "content": self.system_prompt},
                        {"role": "user", "content": message}
-                   ] + self.memory
-
+                   ]
+        messages.extend(self.memory)
+        # 构建消息模板
         text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         model_inputs = self.tokenizer([text], return_tensors="pt").to(self.model.device)
         return model_inputs
@@ -73,15 +72,21 @@ class QwenClient(AbstractChatClient):
 
 
 if __name__ == '__main__':
-    config = ApplicationConfig()
-    chat = QwenClient()
-    while True:
-        message = input(">> ")
-        now = time.time()  # 记录当前时间
-        char_iter: Iterator[str] = chat.chat_iter(message)
-        full_response = ""
-        for char in char_iter:
-            full_response += char
-            print(char, end='')
-        elapsed_time = time.time() - now  # 计算耗时
-        print(f"\ncost time: {elapsed_time:.2f}s")  # 输出耗时
+    pass
+    # llm_configs = config.yaml_config_loader.load_yaml_config(config.yaml_config_loader.CHAT_CLIENT_CONFIG)
+    #
+    # chat = QwenClient(config=llm_configs.get('qwen'))
+    # with open("llm.bin", 'wb') as f:
+    #     dill.dump(chat, f)
+    # with open("llm.bin", 'rb') as f:
+    #     chat = dill.load(f)
+    # while True:
+    #     message = input(">> ")
+    #     now = time.time()  # 记录当前时间
+    #     char_iter: Iterator[str] = chat.chat(message)
+    #     full_response = ""
+    #     for char in char_iter:
+    #         full_response += char
+    #         print(char, end='')
+    #     elapsed_time = time.time() - now  # 计算耗时
+    #     print(f"\ncost time: {elapsed_time:.2f}s")  # 输出耗时

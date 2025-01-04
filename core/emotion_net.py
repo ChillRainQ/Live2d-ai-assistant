@@ -3,9 +3,11 @@ from torch import nn
 
 class EmotionNet(nn.Module):
     """
-    记忆分析网络，分析是否是重要对话
+    记忆分析网络，负责管理对话记忆
     """
-    pass
+    short_term_memory: list
+    long_term_memory: list
+    all_memory: None
 
     def add_long_term_memory(self, long_term_memory):
         """

@@ -9,10 +9,10 @@ from PySide6.QtGui import QImage
 import live2d.v3 as live2d
 from config.application_config import ApplicationConfig
 from core.audio_generator import AudioGenerator
+from core.gobal_components import wav_handler, i18n
 from live2d.v3.params import StandardParams
 from resources.resource import RESOURCE_DIR
 from ui.views.l2d_scene import Live2DScene
-from core.gobal_components import wav_handler, i18n
 
 
 class Live2DModel(Live2DScene.CallbackSet):

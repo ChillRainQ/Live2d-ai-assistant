@@ -1,5 +1,4 @@
 import os
-import sys
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
@@ -29,7 +28,6 @@ class Settings(FluentWindow):
         self.scene_setting = SceneShowSetting(self.config)
         self.ai_setting = AiSetting(self.config)
         self.app_setting = AppSettingWidget(self.config)
-        # self.navigationInterface.addSeparator()
         self.console_output = ConsoleWidget(self.config)
         self.addSubInterface(self.scene_setting, FluentIcon.APPLICATION, f'显示设置')
         self.addSubInterface(self.ai_setting, FluentIcon.CHAT, 'AI设置')
@@ -42,12 +40,13 @@ class Settings(FluentWindow):
         self.setMicaEffectEnabled(True)
 
 
-    def setup(self):
+    def setup(self, callback: AiSetting.CallBackSet):
         # 移除最大化按钮
+        self.ai_setting.setup(callback)
         self.titleBar.maxBtn.hide()
         self.titleBar.setDoubleClickEnabled(False)
-        sys.stdout = self.console_output
-        sys.stderr = self.console_output
+        # sys.stdout = self.console_output
+        # sys.stderr = self.console_output
         # self.config.language.valueChanged.connect()
 
     def flash(self):

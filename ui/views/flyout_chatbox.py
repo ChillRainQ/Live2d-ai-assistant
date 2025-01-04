@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QHBoxLayout, QWidget
-from qfluentwidgets import  FlyoutViewBase, LineEdit, PrimaryToolButton, FluentIcon, ToolButton
+from qfluentwidgets import FlyoutViewBase, LineEdit, PrimaryToolButton, FluentIcon, ToolButton
 
 from config.application_config import ApplicationConfig
 from core.gobal_components import i18n

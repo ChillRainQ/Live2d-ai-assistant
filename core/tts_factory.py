@@ -1,5 +1,5 @@
-from core.abstract_tts_client import AbstractTTSClient
 import config.yaml_config_loader
+from core.abstract_tts_client import AbstractTTSClient
 from core.gobal_components import i18n
 
 
@@ -16,6 +16,9 @@ class TTSClientFactory:
         elif tts_type.lower() == 'edgetts':
             from tts_clients.edge_tts_client import EdgeTTSClient
             tts = EdgeTTSClient(tts_config.get('edgetts'))
+        elif tts_type.lower() == 'gptsovits':
+            from tts_clients.gptsovits_client import GPTSovitsClient
+            tts = GPTSovitsClient(tts_config.get('gptsovits'))
         else:
             pass
         # core.tts_factory.create.tts_type

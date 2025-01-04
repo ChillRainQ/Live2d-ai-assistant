@@ -1,4 +1,4 @@
-from qfluentwidgets import FluentIcon, RangeSettingCard
+from qfluentwidgets import FluentIcon
 
 from config.application_config import ApplicationConfig
 from core.gobal_components import i18n
