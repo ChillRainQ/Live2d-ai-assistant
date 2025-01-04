@@ -1,9 +1,14 @@
-from qfluentwidgets import ConfigItem, QConfig, RangeConfigItem, RangeValidator, BoolValidator
+import os
 
+from qfluentwidgets import ConfigItem, QConfig, RangeConfigItem, RangeValidator, BoolValidator, OptionsConfigItem, \
+    OptionsValidator
 
+from core.gobal_components import i18n
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE_NAME = "config.json"
+CONFIG_FILE = os.path.join(CURRENT_DIR, CONFIG_FILE_NAME)
 class ApplicationConfig(QConfig):
-
-
     live2d_name: ConfigItem = ConfigItem("live2d", "name", "nn")
     resource_dir: ConfigItem = ConfigItem("live2d", "resource_dir", "resources/v3")
     scale: RangeConfigItem = RangeConfigItem("live2d", "scale", 1.0, RangeValidator(0, 1))
@@ -28,12 +33,30 @@ class ApplicationConfig(QConfig):
 
     asr: ConfigItem = ConfigItem("asr", "asr", False, BoolValidator())
     asr_type: ConfigItem = ConfigItem("asr", "asr_type", "baidu")
-    tts: ConfigItem = ConfigItem("tts", "tts", False, BoolValidator())
-    tts_type: ConfigItem = ConfigItem("tts", "tts_type", "cosyvoice")
-    edge_voice: ConfigItem = ConfigItem("tts", "edge_voice", "zh-CN-XiaoxiaoNeural")
 
-    llm_type: ConfigItem = ConfigItem("llm", "llm_type", "qwen")
-    llm_prompts: list = []
+    tts_list: list = ['edgetts', 'cosyvoice', 'GPTSoVITS']
+    tts: ConfigItem = ConfigItem("tts", "tts", False, BoolValidator())
+    tts_type: OptionsConfigItem = OptionsConfigItem("tts", "tts_type", "GPTSoVITS", OptionsValidator(tts_list))
+    tts_stream: ConfigItem = ConfigItem("tts", "tts_stream", False, BoolValidator())
+
+    llm_list: list = ['qwen', 'fake']
+    llm_type: OptionsConfigItem = OptionsConfigItem("llm", "llm_type", "fake", OptionsValidator(llm_list))
+    # llm_type: ConfigItem = ConfigItem("llm", "llm_type", "qwen")
     llm_current_prompt_name: ConfigItem = ConfigItem("llm", "llm_current_prompt", "")
     audio_volume: RangeConfigItem = RangeConfigItem("audio", "audio_volume", 100, RangeValidator(0, 100))
+    language_list: list = [f.split('.')[0] for f in os.listdir(i18n.get_lang_dir()) if f.endswith('.lang')]
+    language: OptionsConfigItem = OptionsConfigItem("application", "language", "en_us", OptionsValidator(language_list))
+
+    def setup(self):
+        self.slotConnectSignal()
+        i18n.set_language(self.language.value)
+
+
+
+
+    def slotConnectSignal(self):
+        self.language.valueChanged.connect(i18n.set_language)
+
+
+
 

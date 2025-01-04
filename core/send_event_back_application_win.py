@@ -1,6 +1,6 @@
 import win32api
-import win32gui
 import win32con
+import win32gui
 from PySide6.QtCore import Qt
 
 

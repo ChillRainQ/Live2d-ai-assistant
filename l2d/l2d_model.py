@@ -1,18 +1,18 @@
 import io
+import json
 import os
 from abc import ABC, abstractmethod
-import live2d.v3 as live2d
-import numpy as np
-from OpenGL.GL import glReadPixels, GL_RGBA, GL_UNSIGNED_BYTE, glReadBuffer, GL_FRONT, GL_BACK
-from PySide6.QtGui import QImage
-from PySide6.QtOpenGLWidgets import QOpenGLWidget
-from live2d.v3.params import StandardParams
-from PySide6.QtCore import Signal
 
+from PySide6.QtCore import Signal
+from PySide6.QtGui import QImage
+
+import live2d.v3 as live2d
 from config.application_config import ApplicationConfig
+from core.audio_generator import AudioGenerator
+from core.gobal_components import wav_handler, i18n
+from live2d.v3.params import StandardParams
+from resources.resource import RESOURCE_DIR
 from ui.views.l2d_scene import Live2DScene
-from utils import file_util
-from utils.gobal_components import wav_handler
 
 
 class Live2DModel(Live2DScene.CallbackSet):
@@ -22,7 +22,7 @@ class Live2DModel(Live2DScene.CallbackSet):
             pass
 
         @abstractmethod
-        def onPlaySound(self, group, no, audio_wav: io.BytesIO = None):
+        def onPlaySound(self, group, no, audio_wav: io.BytesIO | AudioGenerator):
             pass
 
         @abstractmethod
@@ -47,19 +47,21 @@ class Live2DModel(Live2DScene.CallbackSet):
     def onLeftClick(self, mouseX, mouseY):
         pass
 
-
-
     def onInitialize(self):
         """
         初始化
         """
+        def get_live2d_texture_path(model_json_path):
+            with open(model_json_path, 'r', encoding='utf-8') as json_file:
+                json_data = json.load(json_file)
+            textures = json_data.get('FileReferences', {}).get('Textures')[0]
+            return os.path.join(RESOURCE_DIR, textures)
         self.initialize = True
         self.load_model()
-        self.model_texture = QImage(file_util.get_live2d_texture_path(os.path.join(
+        self.model_texture = QImage(get_live2d_texture_path(os.path.join(
             self.config.resource_dir.value, self.config.live2d_name.value,
             self.config.live2d_name.value + '.model3.json'
         )))
-        # self.chatMotionSignal = Signal(str)
         # 初始化设置
         self.model.SetAutoBreathEnable(self.config.autoBreath.value)
         self.model.SetAutoBlinkEnable(self.config.autoBlink.value)
@@ -92,8 +94,6 @@ class Live2DModel(Live2DScene.CallbackSet):
     def onIntervalReached(self):
         self.startRandomMotion(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value)
 
-
-
     initialize: bool  # 初始化标记
     model: live2d.LAppModel | None  # l2d模型
     motionFinished: bool  # 动作完成标记
@@ -101,15 +101,12 @@ class Live2DModel(Live2DScene.CallbackSet):
     model_texture: QImage | None  # 材质
     chatMotionSignal = Signal(str)
 
-    # audioPlayer: audio_player.AudioPlayer | None  # 声音播放器
-
     def __init__(self):
         super().__init__()
         self.soundFinished = True
         self.initialize = False
         self.model = None
         self.motionFinished = True
-        # self.audioPlayer = audio_player.AudioPlayer()
 
     def load_model(self):
         """
@@ -139,9 +136,9 @@ class Live2DModel(Live2DScene.CallbackSet):
     def startMontion(self, group, no, priority):
         self.model.StartMotion(group, no, priority)
 
-    def startOnMotionHandler(self, group, no, audio_wav: io.BytesIO = None):
+    def startOnMotionHandler(self, group, no, audio: io.BytesIO = None | AudioGenerator):
         self.motionFinished = False
-        self.callbackSet.onPlaySound(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio_wav)
+        self.callbackSet.onPlaySound(live2d.MotionGroup.IDLE.value, live2d.MotionPriority.IDLE.value, audio)
         self.callbackSet.onPlayText(group, no)
 
     def startRandomMotion(self, group, no):
@@ -149,10 +146,10 @@ class Live2DModel(Live2DScene.CallbackSet):
                                      self.startOnMotionHandler,
                                      self.setMotionFinished)
 
-    def startChatMotion(self, group, no, audio_wav: io.BytesIO = None):
+    def startChatMotion(self, group, no, audio_wav: io.BytesIO = None | AudioGenerator):
         self.startOnMotionHandler(group, no, audio_wav)
         self.setMotionFinished()
 
     def setMotionFinished(self):
         self.motionFinished = True
-        print("motion finished")
+        print(f'{i18n.get_str("l2d.l2d_model.setMotionFinished")}')

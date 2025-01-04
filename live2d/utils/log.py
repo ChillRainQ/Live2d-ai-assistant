@@ -1,4 +1,5 @@
 import time
+
 from ..v3.live2d import logEnable
 
 RESET = "\033[0m"

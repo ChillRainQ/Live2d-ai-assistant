@@ -1,7 +1,21 @@
 cosyvoice:
   prompt_text: "看来还是受了点伤，咱也不问啦，走吧，送你回去，我就知道，不是我干的，一定是反物质军团的错。"
   prompt_speech: "tts_clients/cosyvoice/example.wav"
-  model: "tts_clients/cosyvoice/CosyVoice-300M"
+  model: "tts_clients/cosyvoice/CosyVoice-300M-25Hz"
 
 edgetts:
   voice: "zh-CN-XiaoxiaoNeural"
+
+gptsovits:
+  cnhuhbert_base_path: "D:/PythonCode/live2d_ai_assistant/GPT_SoVITS_Refactor/resources/pretrained_models/chinese-hubert-base"
+  bert_base_path: "D:/PythonCode/GPT_SoVITS_Refactor/resources/pretrained_models/chinese-roberta-wwm-ext-large"
+  device: "cuda"
+  is_half: false
+  t2s_weights_path: "D:/PythonCode/live2d_ai_assistant/GPT_SoVITS_Refactor/resources/pretrained_models/t2s/v2/huahuo.ckpt"
+  vits_weights_path: "D:/PythonCode/live2d_ai_assistant/GPT_SoVITS_Refactor/resources/pretrained_models/vits/v2/huahuo.pth"
+  version: v2
+  ref_audio: "D:/PythonCode/live2d_ai_assistant/tts_clients/gptsovits/spark.wav"
+  ref_text: "知道啦，我就是随口说说，别当真嘛。一个两个都这样"
+  ref_language: "all_zh"
+  text_lang: "zh"
+

@@ -1,0 +1,24 @@
+custom:
+  bert_base_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\chinese-roberta-wwm-ext-large
+  cnhuhbert_base_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\chinese-hubert-base
+  device: cuda
+  is_half: false
+  t2s_weights_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\t2s\v2\huahuo.ckpt
+  version: v2
+  vits_weights_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\vits\v2\huahuo.pth
+default:
+  bert_base_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\chinese-roberta-wwm-ext-large
+  cnhuhbert_base_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\chinese-hubert-base
+  device: cuda
+  is_half: false
+  t2s_weights_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\t2s\v1\s1bert25hz-2kh-longer-epoch=68e-step=50232.ckpt
+  version: v1
+  vits_weights_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\vits\v1\s2G488k.pth
+default_v2:
+  bert_base_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\chinese-roberta-wwm-ext-large
+  cnhuhbert_base_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\chinese-hubert-base
+  device: cuda
+  is_half: false
+  t2s_weights_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\t2s\v2\huahuo.ckpt
+  version: v2
+  vits_weights_path: D:\PythonCode\live2d_ai_assistant\GPT_SoVITS_Refactor\resources\pretrained_models\vits\v2\huahuo.pth

@@ -1,6 +1,6 @@
-from .live2d import *
-
 from enum import Enum
+
+from .live2d import *
 
 
 class MotionPriority(Enum):
